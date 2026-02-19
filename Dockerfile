@@ -1,22 +1,48 @@
-FROM node:20-alpine AS development-dependencies-env
-COPY . /app
+# Build stage
+FROM node:20-alpine AS builder
+
 WORKDIR /app
+
+# Copiar arquivos de dependências
+COPY package.json package-lock.json* ./
+
+# Instalar dependências (incluindo devDependencies para o build)
 RUN npm ci
 
-FROM node:20-alpine AS production-dependencies-env
-COPY ./package.json package-lock.json /app/
-WORKDIR /app
-RUN npm ci --omit=dev
+# Copiar código fonte
+COPY . .
 
-FROM node:20-alpine AS build-env
-COPY . /app/
-COPY --from=development-dependencies-env /app/node_modules /app/node_modules
-WORKDIR /app
+# Build da aplicação
 RUN npm run build
 
-FROM node:20-alpine
-COPY ./package.json package-lock.json /app/
-COPY --from=production-dependencies-env /app/node_modules /app/node_modules
-COPY --from=build-env /app/build /app/build
+# Production stage
+FROM node:20-alpine AS production
+
 WORKDIR /app
-CMD ["npm", "run", "start"]
+
+# Criar usuário não-root para segurança
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Copiar arquivos de dependências
+COPY package.json package-lock.json* ./
+
+# Instalar apenas dependências de produção
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Copiar build do estágio anterior
+COPY --from=builder /app/build ./build
+
+# Alterar ownership dos arquivos
+RUN chown -R nodejs:nodejs /app
+
+USER nodejsdocker push marcioscar/web-quattor:latest
+
+# Porta padrão do react-router-serve
+EXPOSE 3000
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOST=0.0.0.0
+
+CMD ["npm", "start"]
