@@ -453,6 +453,13 @@ export default function Home() {
 								avatarImg: "/bola_quattor.svg",
 								badge: "Infantil e Adulto ",
 							},
+							{
+								title: "Boxe",
+								subtitle: "Boxe Fitness",
+								coverImg: "/boxe.webp",
+								avatarImg: "/bola_quattor.svg",
+								badge: "Boxe Fitness",
+							},
 						].map((item) => (
 							<div
 								key={item.title}
