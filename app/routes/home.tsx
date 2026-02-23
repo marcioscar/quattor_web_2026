@@ -393,13 +393,18 @@ export default function Home() {
 																					<span className='text-xs font-medium text-gray-800 dark:text-white'>
 																						{aula.name}
 																					</span>
-																					<span className='text-xs flex items-center gap-1 font-extralight text-quattor-cinza dark:text-white'>
-																						{aula.capacity - aula.ocupation >
-																							0 && (
-																							<HiMiniUserPlus className='w-3 h-3  text-gray-400 inline-block ml-1' />
-																						)}
-																						{aula.capacity - aula.ocupation}
-																					</span>
+																					{aula.capacity - aula.ocupation >
+																					0 ? (
+																						<span className='inline-flex items-center justify-center shrink-0 min-w-8 h-6 px-1.5 rounded-full  text-quattor-verde dark:bg-quattor-verde/25 text-xs font-medium gap-1'>
+																							<HiMiniUserPlus
+																								className='w-3 h-3 shrink-0'
+																								aria-hidden
+																							/>
+																							{/* <span>
+																								{aula.capacity - aula.ocupation}
+																							</span> */}
+																						</span>
+																					) : null}
 																				</div>
 																			</div>
 																		))}
