@@ -5,9 +5,10 @@ import {
 	HiSquaresPlus,
 	HiMiniWallet,
 	HiCheckCircle,
+	HiClipboardDocumentList,
 } from "react-icons/hi2";
 import { GiMuscleUp } from "react-icons/gi";
-import { redirect } from "react-router";
+import { Link, redirect } from "react-router";
 import MainNavbar from "../components/MainNavbar";
 import { getSessionRegistration } from "../session.server";
 
@@ -233,7 +234,7 @@ export default function Aluno({ loaderData }: Route.ComponentProps) {
 			<div className='flex flex-col items-center justify-center min-h-screen bg-quattor-fundo'>
 				<div className='  m-4'>
 					<div className='w-full mx-auto grid gap-4 grid-cols-1'>
-						<div className='flex flex-col sticky top-0 z-10'>
+						<div className='flex flex-col'>
 							<div className='bg-quattor-cinza-claro shadow-sm md:min-w-xl mx-auto  rounded-2xl p-4'>
 								<div className='flex-none sm:flex'>
 									<div className=' relative h-32 w-32   sm:mb-0 mb-3'>
@@ -261,7 +262,6 @@ export default function Aluno({ loaderData }: Route.ComponentProps) {
 												</div>
 											</div>
 										</div>
-										<div className='flex flex-row items-center'></div>
 										<div className='flex pt-2  text-sm text-gray-400'>
 											<div className='flex-1 inline-flex items-center'>
 												<HiIdentification className='w-5 h-5 mr-2' />
@@ -279,13 +279,21 @@ export default function Aluno({ loaderData }: Route.ComponentProps) {
 										</div>
 									</div>
 								</div>
+								<div className='mt-4 flex justify-end border-t border-gray-200 pt-4'>
+									<Link
+										to={`/treinos/${aluno.registration}`}
+										className='inline-flex items-center justify-center gap-2 rounded-xl bg-quattor-azul px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-quattor-azul focus-visible:ring-offset-2'>
+										<HiClipboardDocumentList className='h-5 w-5' />
+										Treinar
+									</Link>
+								</div>
 							</div>
 						</div>
 						{/* stats */}
 						<div className='grid grid-cols-12 gap-4 '>
 							<div className='col-span-12 sm:col-span-6'>
 								<div className='p-4 relative  bg-quattor-cinza-claro  shadow-sm  rounded-2xl'>
-									<HiSquaresPlus className='w-14 h-14  absolute bottom-4 right-3 text-quattor-verde' />
+									{/* <HiSquaresPlus className='w-14 h-14  absolute bottom-4 right-3 text-quattor-verde' /> */}
 									<div className='text-2xl text-quattor-azul-escuro font-medium leading-8 mt-5'>
 										{gruposTreinadosNoMes}
 									</div>
@@ -294,7 +302,7 @@ export default function Aluno({ loaderData }: Route.ComponentProps) {
 							</div>
 							<div className='col-span-12 sm:col-span-6'>
 								<div className='p-4 relative  bg-quattor-cinza-claro shadow-sm  rounded-2xl'>
-									<GiMuscleUp className='w-14 h-14  absolute bottom-4 right-3 text-quattor-vermelho' />
+									{/* <GiMuscleUp className='w-14 h-14  absolute bottom-4 right-3 text-quattor-vermelho' /> */}
 									<div className='flex justify-between items-center '>
 										<i className='fab fa-behance text-xl text-gray-400'></i>
 									</div>

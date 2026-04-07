@@ -109,7 +109,7 @@ export default function MainNavbar() {
 					</div>
 				</div>
 			</nav>
-			<div className='h-14' />
+			<div className='h-(--navbar-spacer-height)' />
 		</>
 	);
 }
