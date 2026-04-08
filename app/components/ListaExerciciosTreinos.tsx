@@ -33,6 +33,32 @@ type ListaExerciciosTreinosProps = {
 	historicoTreinos: TreinoHistorico[];
 };
 
+function chaveStorageFeitosHoje(registration: number, grupo: string): string {
+	return `treinos:feitos-hoje:${registration}:${grupo}`;
+}
+
+function lerSetStorage(chave: string): Set<string> {
+	if (typeof window === "undefined") return new Set<string>();
+	try {
+		const bruto = window.sessionStorage.getItem(chave);
+		if (!bruto) return new Set<string>();
+		const arr = JSON.parse(bruto);
+		if (!Array.isArray(arr)) return new Set<string>();
+		return new Set(arr.filter((v): v is string => typeof v === "string"));
+	} catch {
+		return new Set<string>();
+	}
+}
+
+function salvarSetStorage(chave: string, valores: Set<string>): void {
+	if (typeof window === "undefined") return;
+	try {
+		window.sessionStorage.setItem(chave, JSON.stringify(Array.from(valores)));
+	} catch {
+		// Ignore quota/privacidade: fallback já fica em memória.
+	}
+}
+
 function DetalheLinha({ rotulo, valor }: { rotulo: string; valor: string }) {
 	return (
 		<div>
@@ -315,6 +341,14 @@ export function ListaExerciciosTreinos({
 	const [exerciciosFeitosHojeLocal, setExerciciosFeitosHojeLocal] = useState<
 		Set<string>
 	>(new Set());
+	const storageKey = useMemo(
+		() => chaveStorageFeitosHoje(registration, grupo),
+		[registration, grupo],
+	);
+
+	useEffect(() => {
+		setExerciciosFeitosHojeLocal(lerSetStorage(storageKey));
+	}, [storageKey]);
 
 	useEffect(() => {
 		setHistoricoTreinosLocal((anterior) => {
@@ -335,10 +369,28 @@ export function ListaExerciciosTreinos({
 		setExerciciosFeitosHojeLocal((anterior) => {
 			const proximo = new Set(anterior);
 			proximo.add(chave);
+			salvarSetStorage(storageKey, proximo);
 			return proximo;
 		});
 		setHistoricoTreinosLocal((anterior) => [treino, ...anterior]);
 	};
+
+	useEffect(() => {
+		const chavesHojeApi = new Set<string>();
+		for (const item of historicoTreinosLocal) {
+			const chave = chaveExercicio(item.nome);
+			if (!chave) continue;
+			const foiHoje = exercicioFoiTreinadoHoje(historicoTreinosLocal, item.nome);
+			if (foiHoje) chavesHojeApi.add(chave);
+		}
+		if (chavesHojeApi.size === 0) return;
+		setExerciciosFeitosHojeLocal((anterior) => {
+			const proximo = new Set(anterior);
+			for (const chave of chavesHojeApi) proximo.add(chave);
+			salvarSetStorage(storageKey, proximo);
+			return proximo;
+		});
+	}, [historicoTreinosLocal, storageKey]);
 
 	return (
 		<Card>
