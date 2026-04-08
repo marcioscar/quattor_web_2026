@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFetcher } from "react-router";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Timer } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
 import {
@@ -21,8 +21,11 @@ import { cn } from "~/lib/utils";
 import { extrairDetalhesExercicio } from "~/utils/exercicioDetalhes";
 import {
 	chaveExercicio,
+	dataAgoraFormatoHistorico,
 	exercicioFoiTreinadoHoje,
 	filtrarHistoricoExercicioUltimoMes,
+	formatarDataHistoricoExibicao,
+	mergeHistoricoDedup,
 	type TreinoHistorico,
 } from "~/utils/historicoExercicio";
 
@@ -87,6 +90,68 @@ function extrairQuantidadeSeries(repeticoes?: string): number | null {
 	return null;
 }
 
+const DESCANSO_PADRAO_SEGUNDOS = 60;
+const ADICIONAR_DESCANSO_SEGUNDOS = 10;
+
+function formatarTempoDescanso(totalSegundos: number): string {
+	const m = Math.floor(totalSegundos / 60);
+	const s = totalSegundos % 60;
+	return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+type TimerDescansoPainelProps = {
+	segundosRestantes: number;
+	onAdicionarTempo: () => void;
+	onPular: () => void;
+};
+
+function TimerDescansoPainel({
+	segundosRestantes,
+	onAdicionarTempo,
+	onPular,
+}: TimerDescansoPainelProps) {
+	return (
+		<div
+			className='flex w-full max-w-full flex-wrap items-center justify-between gap-x-2 gap-y-2 rounded-md border border-primary/30 bg-primary/5 px-2 py-2 sm:gap-x-3 sm:px-3 sm:py-2.5'
+			role='status'
+			aria-live='polite'
+			aria-label='Timer de descanso entre séries'>
+			<div className='flex items-center gap-1.5 text-muted-foreground sm:gap-2'>
+				<Timer
+					className='size-3.5 shrink-0 text-primary sm:size-4'
+					aria-hidden
+				/>
+				<span className='hidden text-xs font-medium text-foreground sm:inline'>
+					Descanso
+				</span>
+				<span
+					className='font-mono text-xl font-semibold tabular-nums tracking-tight text-foreground sm:text-2xl'
+					aria-label={`${segundosRestantes} segundos restantes`}>
+					{formatarTempoDescanso(segundosRestantes)}
+				</span>
+			</div>
+			<div className='flex shrink-0 gap-1.5'>
+				<Button
+					type='button'
+					variant='secondary'
+					size='sm'
+					className='h-8 px-2 text-xs sm:h-9 sm:px-3 sm:text-sm'
+					onClick={onAdicionarTempo}>
+					+{ADICIONAR_DESCANSO_SEGUNDOS}s
+				</Button>
+				<Button
+					type='button'
+					variant='outline'
+					size='sm'
+					className='h-8 px-2 text-xs sm:h-9 sm:px-3 sm:text-sm'
+					onClick={onPular}>
+					Pular
+				</Button>
+			</div>
+		</div>
+	);
+}
+
 type ChecklistSeriesProps = {
 	quantidade: number;
 	nomeExercicio: string;
@@ -107,12 +172,25 @@ function ChecklistSeries({
 	const [salvando, setSalvando] = useState(false);
 	const [statusSalvar, setStatusSalvar] = useState<"" | "ok" | "erro">("");
 	const [mensagemErro, setMensagemErro] = useState("");
+	const [descansoSegundos, setDescansoSegundos] = useState<number | null>(null);
 
 	useEffect(() => {
 		setConcluidas(Array.from({ length: quantidade }, () => false));
 		setStatusSalvar("");
 		setMensagemErro("");
+		setDescansoSegundos(null);
 	}, [quantidade]);
+
+	useEffect(() => {
+		if (descansoSegundos === null) return;
+		const id = window.setInterval(() => {
+			setDescansoSegundos((s) => {
+				if (s === null || s <= 1) return null;
+				return s - 1;
+			});
+		}, 1000);
+		return () => clearInterval(id);
+	}, [descansoSegundos === null]);
 
 	const totalConcluidas = useMemo(
 		() => concluidas.filter(Boolean).length,
@@ -122,11 +200,26 @@ function ChecklistSeries({
 	const alternarSerie = (indice: number) => {
 		setConcluidas((anterior) => {
 			const proximo = [...anterior];
+			const estavaConcluida = Boolean(anterior[indice]);
 			proximo[indice] = !proximo[indice];
+			const agoraConcluida = proximo[indice];
+			if (!estavaConcluida && agoraConcluida && indice < quantidade - 1) {
+				queueMicrotask(() => setDescansoSegundos(DESCANSO_PADRAO_SEGUNDOS));
+			}
 			return proximo;
 		});
 		setStatusSalvar("");
 		setMensagemErro("");
+	};
+
+	const adicionarDescanso = () => {
+		setDescansoSegundos((s) =>
+			s === null ? null : s + ADICIONAR_DESCANSO_SEGUNDOS,
+		);
+	};
+
+	const pularDescanso = () => {
+		setDescansoSegundos(null);
 	};
 
 	const treinoConcluido = totalConcluidas === quantidade;
@@ -145,13 +238,13 @@ function ChecklistSeries({
 				nome: nomeExercicio,
 				grupo,
 				carga: "",
-				data: new Date().toISOString(),
+				data: dataAgoraFormatoHistorico(),
 			});
 			return;
 		}
 		setStatusSalvar("erro");
 		setMensagemErro(fetcher.data.message || "Erro ao registrar treino.");
-	}, [fetcher.data]);
+	}, [fetcher.data, grupo, nomeExercicio, onTreinoRegistrado]);
 
 	const registrarTreino = () => {
 		const formData = new FormData();
@@ -184,6 +277,15 @@ function ChecklistSeries({
 					</label>
 				))}
 			</div>
+			{descansoSegundos !== null && descansoSegundos > 0 ? (
+				<div className='mt-3 w-full'>
+					<TimerDescansoPainel
+						segundosRestantes={descansoSegundos}
+						onAdicionarTempo={adicionarDescanso}
+						onPular={pularDescanso}
+					/>
+				</div>
+			) : null}
 			<div className='mt-3 flex items-center gap-3'>
 				<Button
 					type='button'
@@ -310,8 +412,9 @@ function ExercicioCollapsibleRow({
 												className='rounded-md bg-muted/40 px-2 py-1 text-xs'>
 												<div
 													className='font-medium truncate'
-													title={`${registro.data} - ${registro.nome}`}>
-													{registro.data} - {registro.nome}
+													title={`${formatarDataHistoricoExibicao(registro.data)} - ${registro.nome}`}>
+													{formatarDataHistoricoExibicao(registro.data)} -{" "}
+													{registro.nome}
 												</div>
 											</li>
 										))}
@@ -336,8 +439,9 @@ export function ListaExerciciosTreinos({
 	grupo,
 	historicoTreinos,
 }: ListaExerciciosTreinosProps) {
-	const [historicoTreinosLocal, setHistoricoTreinosLocal] =
-		useState<TreinoHistorico[]>(historicoTreinos);
+	const [historicoOtimista, setHistoricoOtimista] = useState<TreinoHistorico[]>(
+		[],
+	);
 	const [exerciciosFeitosHojeLocal, setExerciciosFeitosHojeLocal] = useState<
 		Set<string>
 	>(new Set());
@@ -346,51 +450,29 @@ export function ListaExerciciosTreinos({
 		[registration, grupo],
 	);
 
+	const historicoVisivel = useMemo(
+		() => mergeHistoricoDedup(historicoTreinos, ...historicoOtimista),
+		[historicoTreinos, historicoOtimista],
+	);
+
 	useEffect(() => {
 		setExerciciosFeitosHojeLocal(lerSetStorage(storageKey));
 	}, [storageKey]);
 
-	useEffect(() => {
-		setHistoricoTreinosLocal((anterior) => {
-			const vistos = new Set(
-				anterior.map((item) => `${item.data}|${item.nome}|${item.grupo ?? ""}`),
-			);
-			const novos = historicoTreinos.filter((item) => {
-				const chave = `${item.data}|${item.nome}|${item.grupo ?? ""}`;
-				return !vistos.has(chave);
+	const marcarTreinoComoFeito = useCallback(
+		(treino: TreinoHistorico) => {
+			const chave = chaveExercicio(treino.nome);
+			if (!chave) return;
+			setExerciciosFeitosHojeLocal((anterior) => {
+				const proximo = new Set(anterior);
+				proximo.add(chave);
+				salvarSetStorage(storageKey, proximo);
+				return proximo;
 			});
-			return novos.length > 0 ? [...anterior, ...novos] : anterior;
-		});
-	}, [historicoTreinos]);
-
-	const marcarTreinoComoFeito = (treino: TreinoHistorico) => {
-		const chave = chaveExercicio(treino.nome);
-		if (!chave) return;
-		setExerciciosFeitosHojeLocal((anterior) => {
-			const proximo = new Set(anterior);
-			proximo.add(chave);
-			salvarSetStorage(storageKey, proximo);
-			return proximo;
-		});
-		setHistoricoTreinosLocal((anterior) => [treino, ...anterior]);
-	};
-
-	useEffect(() => {
-		const chavesHojeApi = new Set<string>();
-		for (const item of historicoTreinosLocal) {
-			const chave = chaveExercicio(item.nome);
-			if (!chave) continue;
-			const foiHoje = exercicioFoiTreinadoHoje(historicoTreinosLocal, item.nome);
-			if (foiHoje) chavesHojeApi.add(chave);
-		}
-		if (chavesHojeApi.size === 0) return;
-		setExerciciosFeitosHojeLocal((anterior) => {
-			const proximo = new Set(anterior);
-			for (const chave of chavesHojeApi) proximo.add(chave);
-			salvarSetStorage(storageKey, proximo);
-			return proximo;
-		});
-	}, [historicoTreinosLocal, storageKey]);
+			setHistoricoOtimista((anterior) => mergeHistoricoDedup(anterior, treino));
+		},
+		[storageKey],
+	);
 
 	return (
 		<Card>
@@ -404,30 +486,24 @@ export function ListaExerciciosTreinos({
 			</CardHeader>
 			<CardContent>
 				<ul className='flex flex-col gap-2' role='list'>
-					{itens.map((item, index) => (
-						// Cache local evita "desmarcar" após registrar novo treino.
-						// Mantemos união: histórico da API + concluidos na sessão atual.
-						// Isso garante feedback estável para o aluno durante o treino.
-						// Se o nome vier vazio, a chave fica vazia e não marca localmente.
-						(() => {
-							const detalhes = extrairDetalhesExercicio(item);
-							const chaveLocal = chaveExercicio(detalhes.nome);
-							const foiTreinadoHojeLocal =
-								chaveLocal.length > 0 &&
-								exerciciosFeitosHojeLocal.has(chaveLocal);
-							return (
-						<ExercicioCollapsibleRow
-							key={index}
-							item={item}
-							registration={registration}
-							grupo={grupo}
-							historicoTreinos={historicoTreinosLocal}
-							foiTreinadoHojeLocal={foiTreinadoHojeLocal}
-							onTreinoRegistrado={marcarTreinoComoFeito}
-						/>
-							);
-						})()
-					))}
+					{itens.map((item, index) => {
+						const detalhes = extrairDetalhesExercicio(item);
+						const chaveLocal = chaveExercicio(detalhes.nome);
+						const foiTreinadoHojeLocal =
+							chaveLocal.length > 0 &&
+							exerciciosFeitosHojeLocal.has(chaveLocal);
+						return (
+							<ExercicioCollapsibleRow
+								key={index}
+								item={item}
+								registration={registration}
+								grupo={grupo}
+								historicoTreinos={historicoVisivel}
+								foiTreinadoHojeLocal={foiTreinadoHojeLocal}
+								onTreinoRegistrado={marcarTreinoComoFeito}
+							/>
+						);
+					})}
 				</ul>
 			</CardContent>
 		</Card>

@@ -10,7 +10,12 @@ import {
 import { GiMuscleUp } from "react-icons/gi";
 import { Link, redirect } from "react-router";
 import MainNavbar from "../components/MainNavbar";
+import { bd } from "../models/api_access";
 import { getSessionRegistration } from "../session.server";
+import {
+	normalizarHistoricoTreinos,
+	type TreinoHistorico,
+} from "../utils/historicoExercicio";
 
 type aluno = {
 	endDate: string;
@@ -20,29 +25,20 @@ type aluno = {
 	registration: number;
 	status: string;
 };
-type TreinoHistorico = {
-	carga: string;
-	data: string;
-	grupo: string;
-	nome: string;
-};
 
-function normalizarTreinos(data: unknown): TreinoHistorico[] {
-	if (!data) return [];
-	if (Array.isArray(data)) {
-		return data.filter(
-			(item): item is TreinoHistorico =>
-				item != null &&
-				typeof item === "object" &&
-				"nome" in item &&
-				"data" in item,
-		) as TreinoHistorico[];
-	}
-	if (typeof data === "object" && "data" in (data as object)) {
-		const aninhado = (data as Record<string, unknown>).data;
-		return Array.isArray(aninhado) ? normalizarTreinos(aninhado) : [];
-	}
-	return [];
+function filtrarTreinosMesAtual(historico: TreinoHistorico[]): TreinoHistorico[] {
+	const agora = new Date();
+	const anoAtual = agora.getFullYear();
+	const mesAtual = agora.getMonth();
+	return historico.filter((treino) => {
+		const d = parseDataBR(treino.data);
+		return d && d.getFullYear() === anoAtual && d.getMonth() === mesAtual;
+	});
+}
+
+/** Chave de agrupamento no fuso local (evita colapsar dias ao usar UTC com toISOString). */
+function chaveDiaLocalAgrupamento(data: Date): string {
+	return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
 }
 
 /** Parse DD/MM/YY, DD/MM/YYYY ou ISO (YYYY-MM-DD/DateTime) da API */
@@ -137,7 +133,7 @@ function agruparTreinosPorData(historico: TreinoHistorico[]) {
 	for (const treino of historico) {
 		const data = parseDataBR(treino.data);
 		const chave = data
-			? data.toISOString().slice(0, 10)
+			? chaveDiaLocalAgrupamento(data)
 			: (treino.data || "Sem data").trim();
 		const atual = mapa.get(chave) ?? {
 			data,
@@ -186,12 +182,13 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	return { historico, aluno };
 }
 
+/**
+ * O `api_access` envia `limite` alto na URL do histórico; sem isso a API costuma devolver
+ * só os últimos 7 registros. Aqui o mês atual é filtrado no cliente (`filtrarTreinosMesAtual`).
+ */
 export async function historicoLoader(registration: number) {
-	const response = await fetch(
-		`https://api.quattoracademia.com/historico/?matricula=${registration}`,
-	);
-	const data: unknown = await response.json();
-	return normalizarTreinos(data);
+	const raw = await bd.fetchHistorico(String(registration));
+	return normalizarHistoricoTreinos(raw);
 }
 
 export async function alunoLoader(registration: number) {
@@ -209,7 +206,9 @@ export default function Aluno({ loaderData }: Route.ComponentProps) {
 	const exerciciosTreinadosNoMes = contarExerciciosTreinadosNoMes(
 		historico ?? [],
 	);
-	const historicoPorData = agruparTreinosPorData(historico ?? []);
+	const historicoPorData = agruparTreinosPorData(
+		filtrarTreinosMesAtual(historico ?? []),
+	);
 	const avatarGenerico =
 		"data:image/svg+xml;utf8," +
 		"<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'>" +
@@ -323,7 +322,7 @@ export default function Aluno({ loaderData }: Route.ComponentProps) {
 											Histórico de treinos
 										</h2>
 									</div>
-									<div className='mt-4  max-h-80 overflow-auto  space-y-4 px-2 text-left'>
+									<div className='mt-4 max-h-[min(70vh,36rem)] overflow-y-auto space-y-4 px-2 text-left'>
 										{historicoPorData.length === 0 ? (
 											<p className='text-sm text-gray-500'>
 												Nenhum treino encontrado no historico.

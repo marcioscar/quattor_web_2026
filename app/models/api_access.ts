@@ -25,8 +25,29 @@ function buildApiUrlAutenticacao(email: string, senha: string): string {
 function buildApiUrlAluno(matricula: string): string {
     return `${API_BASE_URL_ALUNO}?matricula=${encodeURIComponent(matricula)}`;
 }
-function buildApiUrlHistorico(matricula: string): string {
-    return `${API_BASE_URL_HISTORICO}?matricula=${encodeURIComponent(matricula)}`;
+type OpcoesHistorico = {
+    /** Mês 1–12 e ano (ex.: mês atual) — opcional; sem isso a API costuma devolver “últimos N”. */
+    mes?: number;
+    ano?: number;
+    /**
+     * Máximo de registros. A API sem `limite` costuma devolver só os últimos 7.
+     * @default 5000
+     */
+    limite?: number;
+};
+
+/** Sem limite na query, o backend frequentemente retorna apenas os 7 treinos mais recentes. */
+const LIMITE_PADRAO_HISTORICO = 5000;
+
+function buildApiUrlHistorico(matricula: string, opts?: OpcoesHistorico): string {
+    let url = `${API_BASE_URL_HISTORICO}?matricula=${encodeURIComponent(matricula)}`;
+    const limite = opts?.limite ?? LIMITE_PADRAO_HISTORICO;
+    url += `&limite=${encodeURIComponent(String(limite))}`;
+    url += `&limit=${encodeURIComponent(String(limite))}`;
+    if (opts?.mes != null && opts?.ano != null) {
+        url += `&mes=${encodeURIComponent(String(opts.mes))}&ano=${encodeURIComponent(String(opts.ano))}`;
+    }
+    return url;
 }
 
 function buildApiUrlExercicios(semana: string, grupo: string): string {
@@ -144,8 +165,11 @@ async function fetchAluno(
 
 
 type HistoricoResponse = any;
-async function fetchHistorico(matricula: string): Promise<HistoricoResponse | { message: string }> {
-    const url = buildApiUrlHistorico(matricula);
+async function fetchHistorico(
+    matricula: string,
+    opts?: OpcoesHistorico,
+): Promise<HistoricoResponse | { message: string }> {
+    const url = buildApiUrlHistorico(matricula, opts);
     const response = await fetch(url);
     const data = await response.json();
     if (!response.ok) {

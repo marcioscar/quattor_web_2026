@@ -1,37 +1,17 @@
 import type { Route } from "./+types/historico";
 import MainNavbar from "../components/MainNavbar";
-
-type TreinoHistorico = {
-	carga: string;
-	data: string;
-	grupo: string;
-	nome: string;
-};
-
-function normalizarTreinos(data: unknown): TreinoHistorico[] {
-	if (!data) return [];
-	if (Array.isArray(data)) {
-		return data.filter(
-			(item): item is TreinoHistorico =>
-				item != null &&
-				typeof item === "object" &&
-				"nome" in item &&
-				"data" in item,
-		) as TreinoHistorico[];
-	}
-	if (typeof data === "object" && "data" in (data as object)) {
-		const aninhado = (data as Record<string, unknown>).data;
-		return Array.isArray(aninhado) ? normalizarTreinos(aninhado) : [];
-	}
-	return [];
-}
+import { bd } from "../models/api_access";
+import {
+	normalizarHistoricoTreinos,
+	type TreinoHistorico,
+} from "../utils/historicoExercicio";
 
 export async function loader({ params }: Route.LoaderArgs) {
-	const response = await fetch(
-		`https://api.quattoracademia.com/historico/?matricula=${params.registration}`,
-	);
-	const data: unknown = await response.json();
-	return { treinos: normalizarTreinos(data), matricula: params.registration };
+	const raw = await bd.fetchHistorico(String(params.registration));
+	return {
+		treinos: normalizarHistoricoTreinos(raw),
+		matricula: params.registration,
+	};
 }
 
 function formatarData(dataStr: string): string {
