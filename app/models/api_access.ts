@@ -33,8 +33,59 @@ function buildApiUrlExercicios(semana: string, grupo: string): string {
     return `${API_BASE_URL_EXERCICIOS}?semana=${encodeURIComponent(semana)}&grupo=${encodeURIComponent(grupo)}`;
 }
 
-function buildApiUrlRegistrarTreino(matricula: string, grupo: string, nome: string): string {
+/** URL absoluta para mídia retornada como arquivo relativo (ex.: `producao.gif`). */
+export function buildUrlMidiaExercicio(referencia: string): string {
+    const t = referencia.trim();
+    if (!t) return "";
+    if (/^https?:\/\//i.test(t)) return t;
+    const origin = `${new URL(API_BASE_URL_EXERCICIOS).origin}/`;
+    return new URL(t.replace(/^\/+/, ""), origin).href;
+}
+
+function buildApiUrlRegistrarTreino(
+    matricula: string,
+    grupo: string,
+    nome: string,
+    carga: string
+): string {
+    return `${API_BASE_URL_REGISTRAR_TREINO}?matricula=${encodeURIComponent(matricula)}&grupo=${encodeURIComponent(grupo)}&nome=${encodeURIComponent(nome)}&carga=${encodeURIComponent(carga)}`;
+}
+
+function buildApiUrlRegistrarTreinoLegacy(
+    matricula: string,
+    grupo: string,
+    nome: string
+): string {
     return `${API_BASE_URL_REGISTRAR_TREINO}?matricula=${encodeURIComponent(matricula)}&grupo=${encodeURIComponent(grupo)}&nome=${encodeURIComponent(nome)}`;
+}
+
+async function postarRegistroTreino(url: string): Promise<RegistrarTreinoResponse> {
+    const response = await fetch(url, {
+        method: "POST",
+    });
+
+    const contentType = response.headers.get("content-type");
+    let data: unknown;
+
+    if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+    } else {
+        const text = await response.text();
+        throw { type: "ERROR", message: text || "Resposta inválida da API" };
+    }
+
+    if (!response.ok) {
+        const mensagem =
+            typeof data === "object" &&
+            data !== null &&
+            "message" in data &&
+            typeof (data as { message: unknown }).message === "string"
+                ? (data as { message: string }).message
+                : "Erro ao registrar treino";
+        throw { type: "ERROR", message: mensagem };
+    }
+
+    return data as RegistrarTreinoResponse;
 }
 
 
@@ -52,28 +103,20 @@ async function fetchAutenticacao(email: string, senha: string) {
 }
 
 
-async function fetchRegistrarTreino(matricula: string, grupo: string, nome: string): Promise<RegistrarTreinoResponse | { message: string }> {
-    const url = buildApiUrlRegistrarTreino(matricula, grupo, nome);
-    
-    const response = await fetch(url, {
-        method: "POST",
-    });
-    
-    const contentType = response.headers.get("content-type");
-    let data;
-    
-    if (contentType && contentType.includes("application/json")) {
-        data = await response.json();
-    } else {
-        const text = await response.text();
-        throw { type: "ERROR", message: "Resposta inválida da API" };
+async function fetchRegistrarTreino(
+    matricula: string,
+    grupo: string,
+    nome: string,
+    carga = ""
+): Promise<RegistrarTreinoResponse | { message: string }> {
+    const urlComCarga = buildApiUrlRegistrarTreino(matricula, grupo, nome, carga);
+    try {
+        return await postarRegistroTreino(urlComCarga);
+    } catch (erroComCarga) {
+        if (carga !== "") throw erroComCarga;
+        const urlLegado = buildApiUrlRegistrarTreinoLegacy(matricula, grupo, nome);
+        return await postarRegistroTreino(urlLegado);
     }
-    
-    if (!response.ok) {
-        throw { type: "ERROR", message: data.message || "Erro ao registrar treino" };
-    }
-    
-    return data as RegistrarTreinoResponse;
 }
 
 async function fetchAluno(

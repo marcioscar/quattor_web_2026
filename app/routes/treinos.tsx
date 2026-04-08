@@ -1,11 +1,20 @@
-import { Form, redirect } from "react-router";
+import { redirect } from "react-router";
+import { AlertCircle } from "lucide-react";
+import { ListaExerciciosTreinos } from "../components/ListaExerciciosTreinos";
 import MainNavbar from "../components/MainNavbar";
+import { TreinosGrupoForm } from "../components/TreinosGrupoForm";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { Card, CardContent } from "~/components/ui/card";
 import {
 	GRUPOS_MUSCULARES,
 	type GrupoMuscular,
 } from "../constants/gruposMusculares";
 import { bd } from "../models/api_access";
 import { getSessionRegistration } from "../session.server";
+import {
+	normalizarHistoricoTreinos,
+	type TreinoHistorico,
+} from "../utils/historicoExercicio";
 import { semanaDoAnoAtualParaApi } from "../utils/semanaDoAno";
 import type { Route } from "./+types/treinos";
 
@@ -15,6 +24,7 @@ export type TreinosLoaderData = {
 	ano: number;
 	grupo: GrupoMuscular;
 	exercicios: unknown[];
+	historicoTreinos: TreinoHistorico[];
 	erroExercicios: string | null;
 };
 
@@ -37,11 +47,18 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 	let exercicios: unknown[] = [];
 	let erroExercicios: string | null = null;
+	let historicoTreinos: TreinoHistorico[] = [];
 	try {
 		const raw = await bd.fetchExercicios(semana, grupo);
 		exercicios = normalizarListaExercicios(raw);
 	} catch (error) {
 		erroExercicios = extrairMensagemErro(error);
+	}
+	try {
+		const rawHistorico = await bd.fetchHistorico(String(registration));
+		historicoTreinos = normalizarHistoricoTreinos(rawHistorico);
+	} catch {
+		historicoTreinos = [];
 	}
 
 	return {
@@ -50,8 +67,63 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		ano,
 		grupo,
 		exercicios,
+		historicoTreinos,
 		erroExercicios,
 	} satisfies TreinosLoaderData;
+}
+
+function lerCampoTexto(
+	formData: FormData,
+	nomeCampo: string,
+): string | undefined {
+	const valor = formData.get(nomeCampo);
+	return typeof valor === "string" && valor.trim() ? valor.trim() : undefined;
+}
+
+export async function action({ params, request }: Route.ActionArgs) {
+	const registration = Number(params.registration);
+	if (!params.registration || Number.isNaN(registration)) {
+		return Response.json(
+			{ ok: false, message: "Matrícula inválida." },
+			{ status: 400 },
+		);
+	}
+
+	const sessionRegistration = getSessionRegistration(request);
+	if (!sessionRegistration || sessionRegistration !== String(registration)) {
+		return Response.json({ ok: false, message: "Não autorizado." }, { status: 401 });
+	}
+
+	const formData = await request.formData();
+	const intent = lerCampoTexto(formData, "intent");
+	if (intent !== "registrarTreino") {
+		return Response.json({ ok: false, message: "Ação inválida." }, { status: 400 });
+	}
+
+	const grupo = lerCampoTexto(formData, "grupo");
+	const nome = lerCampoTexto(formData, "nome");
+	const carga = lerCampoTexto(formData, "carga") ?? "";
+
+	if (!grupo || !nome) {
+		return Response.json(
+			{ ok: false, message: "Dados incompletos para registrar treino." },
+			{ status: 400 },
+		);
+	}
+
+	try {
+		await bd.fetchRegistrarTreino(String(registration), grupo, nome, carga);
+		return Response.json({ ok: true });
+	} catch (error) {
+		const message =
+			error &&
+			typeof error === "object" &&
+			"message" in error &&
+			typeof (error as { message: unknown }).message === "string"
+				? (error as { message: string }).message
+				: "Erro ao registrar treino.";
+		return Response.json({ ok: false, message }, { status: 500 });
+	}
 }
 
 function parseGrupo(valor: string | null): GrupoMuscular {
@@ -87,80 +159,56 @@ function extrairMensagemErro(error: unknown): string {
 	return "Erro ao buscar exercícios";
 }
 
-function rotuloExercicio(item: unknown): string {
-	if (item != null && typeof item === "object" && "nome" in item) {
-		const n = (item as { nome: unknown }).nome;
-		if (typeof n === "string") return n;
-		if (n != null) return String(n);
-	}
-	return JSON.stringify(item);
-}
-
 export default function Treinos({ loaderData }: Route.ComponentProps) {
-	const { registration, semana, ano, grupo, exercicios, erroExercicios } =
+	const {
+		registration,
+		semana,
+		ano,
+		grupo,
+		exercicios,
+		historicoTreinos,
+		erroExercicios,
+	} =
 		loaderData as TreinosLoaderData;
 
 	return (
 		<>
 			<MainNavbar />
 			<div className='min-h-screen bg-quattor-fundo px-4 py-6 md:px-8'>
-				<div className='mx-auto max-w-2xl'>
-					<h1 className='text-2xl font-bold text-quattor-azul-escuro'>
-						Treinos
-					</h1>
-					<p className='mt-1 text-sm text-gray-500'>
-						Semana {semana} Escolha o grupo muscular para ver os exercícios.
-					</p>
-
-					<Form
-						method='get'
-						action={`/treinos/${registration}`}
-						className='mt-6 space-y-4 rounded-2xl bg-quattor-cinza-claro p-4 shadow-sm'>
-						<label className='flex flex-col gap-1.5 text-sm font-medium text-quattor-azul-escuro'>
-							Grupo muscular
-							<select
-								name='grupo'
-								defaultValue={grupo}
-								className='rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 shadow-sm focus:border-quattor-azul focus:outline-none focus:ring-2 focus:ring-quattor-azul/30'>
-								{GRUPOS_MUSCULARES.map((g) => (
-									<option key={g} value={g}>
-										{g}
-									</option>
-								))}
-							</select>
-						</label>
-						<div className='flex justify-end'>
-							<button
-								type='submit'
-								className='rounded-xl bg-quattor-azul px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-quattor-azul focus-visible:ring-offset-2'>
-								Buscar exercícios
-							</button>
-						</div>
-					</Form>
-
-					<div className='mt-8'>
-						{erroExercicios ? (
-							<p
-								className='rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800'
-								role='alert'>
-								{erroExercicios}
-							</p>
-						) : exercicios.length === 0 ? (
-							<p className='text-sm text-gray-500'>
-								Nenhum exercício encontrado para esta combinação.
-							</p>
-						) : (
-							<ul className='space-y-2' role='list'>
-								{exercicios.map((item, index) => (
-									<li
-										key={index}
-										className='rounded-xl border border-gray-200 bg-white px-4 py-3 text-quattor-azul-escuro shadow-sm'>
-										{rotuloExercicio(item)}
-									</li>
-								))}
-							</ul>
-						)}
+				<div className='mx-auto flex max-w-2xl flex-col gap-6'>
+					<div className='flex flex-col gap-1'>
+						<h1 className='font-heading text-2xl font-semibold text-quattor-azul-escuro'>
+							Treinos
+						</h1>
+						<p className='text-sm text-muted-foreground'>
+							Escolha o grupo muscular para ver os exercícios.
+						</p>
 					</div>
+
+					<TreinosGrupoForm registration={registration} grupoInicial={grupo} />
+
+					{erroExercicios ? (
+						<Alert variant='destructive'>
+							<AlertCircle />
+							<AlertTitle>Não foi possível carregar</AlertTitle>
+							<AlertDescription>{erroExercicios}</AlertDescription>
+						</Alert>
+					) : exercicios.length === 0 ? (
+						<Card>
+							<CardContent className='pt-6'>
+								<p className='text-sm text-muted-foreground'>
+									Nenhum exercício encontrado para esta combinação.
+								</p>
+							</CardContent>
+						</Card>
+					) : (
+						<ListaExerciciosTreinos
+							itens={exercicios}
+							registration={registration}
+							grupo={grupo}
+							historicoTreinos={historicoTreinos}
+						/>
+					)}
 				</div>
 			</div>
 		</>
