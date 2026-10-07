@@ -1,6 +1,7 @@
 import { Link, redirect, useFetcher } from "react-router";
 import { getSessionRegistration } from "../session.server";
-import MainNavbar from "../components/MainNavbar";
+import { AuthLayout, Aviso, Campo, CampoSenha, CLASSE_BOTAO_PRINCIPAL } from "../components/AuthLayout";
+import { ArrowRight, KeyRound, Lock, Mail } from "lucide-react";
 import { autenticar, concluirLogin, type FalhaLogin } from "~/auth/login.server";
 import { normalizarEmail } from "~/auth/regras";
 import type { Route } from "./+types/login";
@@ -33,89 +34,52 @@ export async function action({ request }: Route.ActionArgs): Promise<FalhaLogin>
 
 export default function Login() {
 	const fetcher = useFetcher<typeof action>();
-	const isSubmitting = fetcher.state === "submitting";
+	const isSubmitting = fetcher.state !== "idle";
 	const result = fetcher.data;
 
-	const errorMessage =
-		result && !result.ok && result.error === "INACTIVE"
-			? "Sua matrícula está inativa. Procure a recepção."
-			: result && !result.ok && result.error === "NOT_FOUND"
-				? "E-mail ou senha incorretos. Se é seu primeiro acesso, crie sua senha abaixo."
-				: null;
-
 	return (
-		<>
-			<MainNavbar />
-			<div className='min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4'>
-				<div className='w-full max-w-md'>
-					<div className='bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-8'>
-						<h1 className='text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6'>
-							Entrar
-						</h1>
+		<AuthLayout
+			titulo='Entrar'
+			subtitulo='Use o e-mail do seu cadastro na academia.'>
+			{result && !result.ok && result.error === "INACTIVE" && (
+				<Aviso tipo='atencao'>Sua matrícula está inativa. Procure a recepção.</Aviso>
+			)}
+			{result && !result.ok && result.error === "NOT_FOUND" && (
+				<Aviso tipo='erro'>
+					E-mail ou senha incorretos. Se é seu primeiro acesso,{" "}
+					<Link to='/primeiro-acesso' className='underline'>
+						crie sua senha
+					</Link>
+					.
+				</Aviso>
+			)}
 
-						{errorMessage && (
-							<div
-								className='mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm'
-								role='alert'>
-								{errorMessage}
-							</div>
-						)}
+			<fetcher.Form method='post' className='space-y-4'>
+				<Campo
+					id='email'
+					rotulo='E-mail'
+					icone={Mail}
+					type='email'
+					autoComplete='email'
+					required
+					placeholder='seu@email.com'
+				/>
+				<CampoSenha id='senha' rotulo='Senha' icone={Lock} autoComplete='current-password' required />
+				<button type='submit' disabled={isSubmitting} className={`${CLASSE_BOTAO_PRINCIPAL} mt-2`}>
+					{isSubmitting ? "Entrando..." : "Entrar"}
+					{!isSubmitting && <ArrowRight className='h-4 w-4' />}
+				</button>
+			</fetcher.Form>
 
-						<fetcher.Form method='post' className='space-y-5'>
-														<div>
-								<label
-									htmlFor='email'
-									className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5'>
-									E-mail
-								</label>
-								<input
-									id='email'
-									type='email'
-									name='email'
-									autoComplete='email'
-									required
-									className='w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-shadow'
-									placeholder='seu@email.com'
-								/>
-							</div>
-
-							<div>
-								<label
-									htmlFor='senha'
-									className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5'>
-									Senha
-								</label>
-								<div className='relative'>
-									<input
-										id='senha'
-										name='senha'
-										autoComplete='current-password'
-										required
-										type='password'
-										className='w-full px-4 py-2.5 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-shadow'
-									/>
-								</div>
-							</div>
-
-							<button
-								type='submit'
-								className='w-full py-3 px-4 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors'>
-								{!isSubmitting && "Entrar"}
-								{isSubmitting && <span className='ml-2'>Carregando...</span>}
-							</button>
-						</fetcher.Form>
-
-						<p className='mt-6 text-center text-sm text-gray-600 dark:text-gray-400'>
-							Primeiro acesso ou esqueceu a senha?{" "}
-							<Link
-								to='/primeiro-acesso'
-								className='text-orange-500 hover:text-orange-600 font-medium'>
-								Criar senha
-							</Link>
-						</p>
-					</div>
-				</div>
+			<div className='mt-8 rounded-2xl bg-quattor-fundo p-4 text-center'>
+				<p className='text-sm font-medium text-quattor-azul-escuro'>Primeiro acesso ou esqueceu a senha?</p>
+				<Link
+					to='/primeiro-acesso'
+					className='mt-1 inline-flex items-center gap-1 text-sm font-semibold text-quattor-azul hover:underline'>
+					<KeyRound className='h-4 w-4' />
+					Criar ou trocar senha
+				</Link>
 			</div>
-		</>
+		</AuthLayout>
 	);
 }

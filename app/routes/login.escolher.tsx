@@ -1,5 +1,6 @@
 import { Form, redirect } from "react-router";
-import MainNavbar from "../components/MainNavbar";
+import { ChevronRight } from "lucide-react";
+import { AuthLayout } from "../components/AuthLayout";
 import { db } from "~/db.server";
 import {
 	createSessionCookie,
@@ -46,40 +47,35 @@ export async function action({ request }: Route.ActionArgs) {
 
 export default function EscolherAluno({ loaderData }: Route.ComponentProps) {
 	return (
-		<>
-			<MainNavbar />
-			<div className='min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4'>
-				<div className='w-full max-w-md'>
-					<div className='bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-8'>
-						<h1 className='text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2'>
-							Quem vai treinar?
-						</h1>
-						<p className='text-sm text-gray-600 dark:text-gray-400 mb-6'>
-							Este e-mail é de mais de um aluno. Escolha o seu.
-						</p>
-						<Form method='post' className='space-y-3'>
-							{loaderData.alunos.map((aluno) => (
-								<button
-									key={aluno.registration}
-									type='submit'
-									name='registration'
-									value={aluno.registration}
-									className='w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-gray-800 text-left transition-colors'>
-									{aluno.foto ? (
-										<img src={aluno.foto} alt='' className='w-10 h-10 rounded-full object-cover' />
-									) : (
-										<span className='w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700' />
-									)}
-									<span className='flex flex-col'>
-										<span className='font-medium text-gray-900 dark:text-gray-100'>{aluno.nome}</span>
-										<span className='text-xs text-gray-500'>Matrícula {aluno.registration}</span>
-									</span>
-								</button>
-							))}
-						</Form>
-					</div>
-				</div>
-			</div>
-		</>
+		<AuthLayout
+			titulo='Quem vai treinar?'
+			subtitulo='Este e-mail é de mais de um aluno. Escolha o seu.'
+			chamada='Um e-mail, a família toda treinando.'>
+			<Form method='post' className='space-y-2'>
+				{loaderData.alunos.map((aluno) => (
+					<button
+						key={aluno.registration}
+						type='submit'
+						name='registration'
+						value={aluno.registration}
+						className='group flex w-full items-center gap-3 rounded-2xl bg-quattor-fundo p-3 text-left ring-1 ring-transparent transition hover:bg-white hover:ring-quattor-azul'>
+						{aluno.foto ? (
+							<img src={aluno.foto} alt='' className='h-12 w-12 rounded-full object-cover' />
+						) : (
+							<span className='flex h-12 w-12 items-center justify-center rounded-full bg-quattor-azul-escuro text-lg font-bold text-white'>
+								{aluno.nome.charAt(0)}
+							</span>
+						)}
+						<span className='min-w-0 flex-1'>
+							<span className='block truncate font-semibold capitalize text-quattor-azul-escuro'>
+								{aluno.nome.toLowerCase()}
+							</span>
+							<span className='text-xs text-gray-500'>Matrícula {aluno.registration}</span>
+						</span>
+						<ChevronRight className='h-5 w-5 text-gray-300 transition group-hover:text-quattor-azul' />
+					</button>
+				))}
+			</Form>
+		</AuthLayout>
 	);
 }
