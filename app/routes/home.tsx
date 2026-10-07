@@ -1,11 +1,10 @@
-import { useState, useMemo } from "react";
-import { useLoaderData } from "react-router";
+import { useMemo, useRef, useState } from "react";
+import { Link, useLoaderData } from "react-router";
+import { ArrowRight, CalendarDays, Clock, LogIn, Mail, MapPin, Search, UserPlus, X } from "lucide-react";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import MainNavbar from "../components/MainNavbar";
 import type { Route } from "./+types/home";
 import { aulasDoDia, hojeBrasilia, type Aula } from "../aulas/agenda.server";
-import { FaWhatsapp, FaInstagram, FaCalendarCheck } from "react-icons/fa";
-import { HiEnvelope, HiMiniUserPlus } from "react-icons/hi2";
-import { RiCalendarScheduleFill } from "react-icons/ri";
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -14,439 +13,427 @@ export function meta({}: Route.MetaArgs) {
 	];
 }
 
-/** Mapeia idActivity para cor da bolinha (Tailwind) */
-const CORES_AULAS: Record<number, string> = {
-	23: "bg-blue-500",
-	24: "bg-blue-400",
-	25: "bg-red-600",
-	26: "bg-orange-600",
-	27: "bg-amber-700",
-	28: "bg-amber-800",
-	30: "bg-cyan-500",
-	31: "bg-emerald-600",
-	33: "bg-fuchsia-500",
-	34: "bg-violet-500",
-	38: "bg-purple-600",
-	39: "bg-teal-500",
-	41: "bg-red-700",
-	42: "bg-pink-500",
-	43: "bg-pink-400",
-	53: "bg-rose-400",
-	54: "bg-rose-300",
-	55: "bg-pink-600",
-	56: "bg-pink-500",
-	57: "bg-fuchsia-600",
-	58: "bg-pink-400",
-	62: "bg-pink-500",
-	63: "bg-slate-700",
-	64: "bg-pink-500",
-	65: "bg-fuchsia-500",
-	66: "bg-fuchsia-600",
-	67: "bg-indigo-500",
-	68: "bg-teal-600",
-	69: "bg-amber-600",
-};
-
-function corAula(idActivity: number): string {
-	return CORES_AULAS[idActivity] ?? "bg-quattor-verde";
-}
-
-const CODIGOS_AULAS = {
-	1: "Musculação",
-	23: "Natação adulto",
-	24: "Natação infantil",
-	25: "Boxe",
-	26: "Muay Thai",
-	27: "Jiu Jitsu",
-	28: "Judo",
-	30: "Hidroginastica",
-	31: "Spinning",
-	33: "FiDance",
-	34: "Pilates Solo",
-	38: "Pilates Studio",
-	39: "Quattor Prime",
-	41: "Karatê",
-	42: "Ballet adulto",
-	43: "Ballet infantil",
-	53: "Baby 1 - Ballet",
-	54: "Baby 2 - Ballet",
-	55: "Teens com pontas",
-	56: "Ballet Adulto Base",
-	57: "Ballet Intermediário + pontas",
-	58: "Ballet Iniciação Adulto do Zero",
-	62: "BALLET ADULTO BÁSICO 2",
-	63: "KRAV MAGA",
-	64: "BALLET INICIAÇÃO(SEG E QUARTA)19h",
-	65: "BALLET BASE + PONTAS(1:30 DE AULA",
-	66: "BALLET INTERMEDIÁRIO + PONTAS(1:30 DE AULA)",
-	67: "Dança Comtemporânea",
-	68: "PRIME 2X",
-	69: "KUNG FU",
-};
-
-function primeiroNome(nomeCompleto: string): string {
-	return nomeCompleto.trim().split(/\s+/)[0] ?? nomeCompleto;
-}
-
-function formatarDataExibicao(dataStr: string): string {
-	if (!dataStr) return "";
-	const d = new Date(dataStr);
-	const dias = [
-		"Domingo",
-		"Segunda",
-		"Terça",
-		"Quarta",
-		"Quinta",
-		"Sexta",
-		"Sábado",
-	];
-	const diaSemana = dias[d.getDay()] ?? "";
-	const dia = d.getDate();
-	const mes = String(d.getMonth() + 1).padStart(2, "0");
-	return `${diaSemana} ${dia}/${mes}`;
-}
-
-function agruparAulasPorData(aulas: Aula[]): Map<string, Aula[]> {
-	const map = new Map<string, Aula[]>();
-	for (const aula of aulas) {
-		const key = aula.activityDate;
-		const list = map.get(key) ?? [];
-		list.push(aula);
-		map.set(key, list);
-	}
-	for (const list of map.values()) {
-		list.sort((a, b) => (a.startTime > b.startTime ? 1 : -1));
-	}
-	return map;
-}
-
-/** Extrai YYYY-MM-DD de activityDate (API pode retornar "2026-02-18T00:00:00") */
-function extrairData(activityDate: string): string {
-	return activityDate.slice(0, 10);
-}
-
-/** Retorna aulas cujo horário de início é >= hora atual (hoje) ou em datas futuras */
-function filtrarAulasProximas(aulas: Aula[]): Aula[] {
-	const now = new Date();
-	const hoje = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-	const horaAtual = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-
-	return aulas.filter((a) => {
-		const dataAula = extrairData(a.activityDate);
-		if (dataAula > hoje) return true;
-		if (dataAula < hoje) return false;
-		return a.startTime >= horaAtual;
-	});
-}
-
 /** Aulas de hoje (dia de Brasília), direto da grade do banco. */
 export async function loader() {
 	return aulasDoDia(hojeBrasilia());
 }
 
+const WHATSAPP = "https://wa.me/5561993190568";
+const TELEFONE = "(61) 99319-0568";
+
+/**
+ * Modalidade da aula pelo nome da turma: "Natação - iniciação (6 a 10 anos)"
+ * → "Natação", "Pilates Studio" → "Pilates". É por ela que a busca agrupa.
+ */
+function modalidadeDa(nome: string): string {
+	const limpo = nome.split(" - ")[0].trim();
+	if (/^fit\s*dance/i.test(limpo)) return "Fit Dance";
+	const primeira = limpo.split(/\s+/)[0] ?? limpo;
+	return primeira.charAt(0).toUpperCase() + primeira.slice(1).toLowerCase();
+}
+
+/** Cor fixa das modalidades principais, só com as cores da marca. */
+const COR_FIXA: Record<string, string> = {
+	Natação: "bg-quattor-azul",
+	Pilates: "bg-quattor-verde",
+	Ballet: "bg-quattor-laranja",
+	Boxe: "bg-quattor-vermelho",
+	Spinning: "bg-quattor-azul-escuro",
+	"Fit Dance": "bg-quattor-laranja/50",
+	Yoga: "bg-quattor-verde/50",
+	Judô: "bg-quattor-azul/50",
+	Karatê: "bg-quattor-vermelho/50",
+	Jiujitsu: "bg-quattor-azul-escuro/50",
+};
+
+/** Modalidade nova, sem cor fixa: cor estável pelo nome. */
+const CORES_MODALIDADE = [
+	"bg-quattor-azul",
+	"bg-quattor-laranja",
+	"bg-quattor-verde",
+	"bg-quattor-vermelho",
+	"bg-quattor-azul-escuro",
+];
+function corDaModalidade(modalidade: string): string {
+	if (COR_FIXA[modalidade]) return COR_FIXA[modalidade];
+	let h = 0;
+	for (const c of modalidade) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+	return CORES_MODALIDADE[h % CORES_MODALIDADE.length];
+}
+
+/** Sem acento e minúsculo — "natacao" acha "Natação". */
+function normalizar(texto: string): string {
+	return texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+/**
+ * "HH:MM" agora em Brasília. Igual no servidor (UTC) e no navegador, então
+ * "só as próximas" não muda de resultado na hidratação.
+ */
+function horaAgoraBrasilia(): string {
+	return new Intl.DateTimeFormat("pt-BR", {
+		timeZone: "America/Sao_Paulo",
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: false,
+	}).format(new Date());
+}
+
+function primeiroNome(nomeCompleto: string): string {
+	const primeiro = nomeCompleto.trim().split(/\s+/)[0] ?? "";
+	return primeiro.charAt(0).toUpperCase() + primeiro.slice(1).toLowerCase();
+}
+
+const MODALIDADES = [
+	{
+		titulo: "Musculação",
+		subtitulo: "Método Quattor, com treinos novos toda semana",
+		imagem: "/musc.webp",
+		selo: "Método Quattor",
+		busca: null, // sala livre: não tem grade de aulas
+	},
+	{
+		titulo: "Natação",
+		subtitulo: "Piscina salinizada e aquecida, infantil e adulto",
+		imagem: "/natacao.webp",
+		selo: "Piscina aquecida",
+		busca: "Natação",
+	},
+	{
+		titulo: "Ballet",
+		subtitulo: "Do baby ao adulto, com pontas e contemporâneo",
+		imagem: "/ballet.webp",
+		selo: "Infantil e adulto",
+		busca: "Ballet",
+	},
+	{
+		titulo: "Boxe",
+		subtitulo: "Boxe fitness para condicionamento e técnica",
+		imagem: "/boxe.webp",
+		selo: "Boxe fitness",
+		busca: "Boxe",
+	},
+];
+
+/** Quadrado colorido com ícone — mesmo padrão das páginas do aluno. */
+function IconeBento({ cor, children }: { cor: string; children: React.ReactNode }) {
+	return <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${cor}`}>{children}</span>;
+}
+
+const AULAS_INICIAIS = 9; // 3 linhas de 3 no desktop
+
 export default function Home() {
 	const aulas: Aula[] = useLoaderData<typeof loader>();
-	const aulasPorData = agruparAulasPorData(aulas);
-	const aulasPorDataProximas = agruparAulasPorData(filtrarAulasProximas(aulas));
-	const [filtroAulaHoje, setFiltroAulaHoje] = useState<string>("todas");
+	const [busca, setBusca] = useState("");
+	const [modalidade, setModalidade] = useState<string | null>(null);
+	const [soProximas, setSoProximas] = useState(true);
+	const [verTodas, setVerTodas] = useState(false);
+	const secaoAulas = useRef<HTMLElement>(null);
 
-	const nomesAulasHoje = useMemo(() => {
-		const nomes = new Set<string>();
-		for (const aulasDoDia of aulasPorData.values()) {
-			for (const a of aulasDoDia) {
-				nomes.add(a.name);
-			}
-		}
-		return Array.from(nomes).sort((a, b) => a.localeCompare(b));
-	}, [aulasPorData]);
+	const modalidades = useMemo(
+		() => [...new Set(aulas.map((a) => modalidadeDa(a.name)))].sort((a, b) => a.localeCompare(b)),
+		[aulas],
+	);
+
+	const agora = horaAgoraBrasilia();
+	const filtradas = useMemo(() => {
+		const termo = normalizar(busca.trim());
+		return aulas
+			.filter((a) => !soProximas || a.startTime >= agora)
+			.filter((a) => !modalidade || modalidadeDa(a.name) === modalidade)
+			.filter((a) => !termo || normalizar(`${a.name} ${a.instructor}`).includes(termo))
+			.sort((a, b) => a.startTime.localeCompare(b.startTime) || a.name.localeCompare(b.name));
+	}, [aulas, busca, modalidade, soProximas, agora]);
+	const visiveis = verTodas ? filtradas : filtradas.slice(0, AULAS_INICIAIS);
+	const filtrando = !!busca.trim() || !!modalidade;
+
+	function filtrarPorModalidade(nome: string) {
+		const existe = modalidades.find((m) => normalizar(m) === normalizar(nome));
+		setModalidade(existe ?? null);
+		setBusca(existe ? "" : nome);
+		setSoProximas(false);
+		setVerTodas(true);
+		secaoAulas.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+	}
+
+	function limparFiltros() {
+		setBusca("");
+		setModalidade(null);
+	}
+
 	return (
 		<>
 			<MainNavbar />
-
-			{/* component */}
-			<section className='bg-quattor-cinza-claro dark:bg-gray-950'>
-				<div className='py-10'>
-					<div className='mx-auto px-6 max-w-6xl text-gray-500'>
-						<div className='relative'>
-							<div className='relative z-10 grid gap-3 grid-cols-6'>
-								<div
-									className='col-span-full shadow-sm lg:col-span-6 overflow-hidden flex relative min-h-[280px] rounded-xl bg-cover bg-center'
-									style={{
-										backgroundImage: `url('/backgroud%20quattor.webp')`,
-									}}>
-									<div className='absolute bottom-0 left-0 right-0 z-10 bg-black/40 backdrop-blur-sm rounded-b-xl px-1 py-4 flex flex-wrap items-center justify-center gap-6 sm:gap-8'>
-										<p className='text-sm font-bold text-quattor-laranja'>
-											RUA 5 SUL - ÁGUAS CLARAS
-										</p>
-										<a
-											href='https://wa.me/5561993190568'
-											target='_blank'
-											rel='noreferrer'
-											className='flex items-center gap-2 text-white hover:text-[#25D366] transition-colors'>
-											<FaWhatsapp className='w-7 h-7 text-[#25D366]' />
-											<span className='font-bold'>(61) 99319-0568</span>
-										</a>
-
-										<div className='flex gap-4'>
-											<a
-												href='https://www.instagram.com/quattor_academia/'
-												target='_blank'
-												rel='noreferrer'
-												className='text-white/80 hover:text-pink-400 transition-colors'>
-												<FaInstagram className='w-6 h-6' />
-											</a>
-											<a
-												href='mailto:recepcao@quattoracademia.com'
-												className='text-white/80 hover:text-blue-400 transition-colors'>
-												<HiEnvelope className='w-6 h-6' />
-											</a>
-										</div>
-									</div>
-								</div>
-								<div className='col-span-full   shadow-sm sm:col-span-3 lg:col-span-3 overflow-hidden relative p-8 rounded-xl bg-white border border-gray-200 dark:border-gray-800 dark:bg-gray-900'>
-									<div>
-										<RiCalendarScheduleFill className='mx-auto w-10 h-10 text-quattor-vermelho' />
-										<div className='mt-6 text-center relative z-10 space-y-3'>
-											<h2 className='text-lg font-medium text-gray-800 transition group-hover:text-purple-950 dark:text-white'>
-												Horário de Funcionamento
-											</h2>
-											<div className='space-y-2 text-sm dark:text-gray-300 text-quattor-azul-escuro'>
-												<p className='font-semibold'>
-													Segunda a Sexta: 5h às 23h
-												</p>
-												<p className='font-semibold'>
-													Sáb | Dom | Feriados: 8h às 12h
-												</p>
-											</div>
-										</div>
-									</div>
-								</div>
-
-								<div className='col-span-full shadow-sm sm:col-span-3 lg:col-span-3 overflow-hidden relative p-8 rounded-xl bg-white border border-gray-200 dark:border-gray-800 dark:bg-gray-900'>
-									<div>
-										<FaCalendarCheck className='mx-auto w-10 h-10 text-quattor-verde' />
-										<div className='mt-14 text-center relative z-10 space-y-4'>
-											<h2 className='text-lg font-medium text-gray-800 transition group-hover:text-purple-950 dark:text-white'>
-												Agende sua aula
-											</h2>
-											<div className='flex justify-center'>
-												<button
-													onClick={() =>
-														window.open("https://wa.me/5561993190568", "_blank")
-													}
-													className='inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-quattor-verde text-white font-bold shadow-md hover:bg-[#20bd5a] hover:shadow-lg transition-all'>
-													<FaWhatsapp className='w-6 h-6' />
-													<span>(61) 99319-0568</span>
-												</button>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div className='col-span-full grid grid-cols-1 md:grid-cols-2 gap-4'>
-									<div className='shadow-sm overflow-hidden relative p-6 rounded-xl bg-white border border-gray-200 dark:border-gray-800 dark:bg-gray-900'>
-										<div className='p-4'>
-											<FaCalendarCheck className='mx-auto w-8 h-8 text-quattor-azul mb-3' />
-											<h2 className='text-base font-medium text-gray-800 dark:text-white mb-4 text-center'>
-												Próximas aulas
-											</h2>
-											{aulasPorDataProximas.size === 0 ? (
-												<p className='text-center text-xs text-gray-500 dark:text-gray-400'>
-													Nenhuma aula programada.
-												</p>
-											) : (
-												<div className='space-y-4'>
-													{Array.from(aulasPorDataProximas.entries()).map(
-														([data, aulasDoDia]) => (
-															<div key={data}>
-																<span className='text-gray-900 dark:text-white inline-block uppercase font-medium tracking-wider text-xs mb-2'>
-																	{formatarDataExibicao(data)}
-																</span>
-																{aulasDoDia.map((aula, idx) => (
-																	<div
-																		key={`${aula.activityDate}-${aula.startTime}-${aula.name}-${idx}`}
-																		className='flex flex-col md:flex-row md:items-center gap-0.5 md:gap-0 mb-2'>
-																		<div className='w-full md:w-4/12 md:min-w-14'>
-																			<span className='text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap'>
-																				{aula.startTime}
-																			</span>
-																		</div>
-																		<div className='w-full md:w-8/12 flex items-center gap-2'>
-																			<span
-																				className={`shrink-0 w-2 h-2 rounded-full ${corAula(aula.idActivity)}`}
-																				aria-hidden
-																			/>
-																			<span className='text-xs font-medium text-gray-800 dark:text-white'>
-																				{aula.name}
-																			</span>
-																		</div>
-																	</div>
-																))}
-															</div>
-														),
-													)}
-												</div>
-											)}
-										</div>
-									</div>
-
-									<div className='shadow-sm overflow-hidden relative p-6 rounded-xl bg-white border border-gray-200 dark:border-gray-800 dark:bg-gray-900'>
-										<div className='p-4'>
-											<FaCalendarCheck className='mx-auto w-8 h-8 text-quattor-laranja mb-3' />
-											<h2 className='text-base font-medium text-gray-800 dark:text-white mb-4 text-center'>
-												Aulas de hoje
-											</h2>
-											{aulasPorData.size === 0 ? (
-												<p className='text-center text-xs text-gray-500 dark:text-gray-400'>
-													Nenhuma aula agendada.
-												</p>
-											) : (
-												<>
-													<select
-														value={filtroAulaHoje}
-														onChange={(e) => setFiltroAulaHoje(e.target.value)}
-														className='w-full mb-4 text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-2 focus:ring-2 focus:ring-quattor-laranja focus:border-transparent'>
-														<option value='todas'>Todas as aulas</option>
-														{nomesAulasHoje.map((nome) => (
-															<option key={nome} value={nome}>
-																{nome}
-															</option>
-														))}
-													</select>
-													<div className='space-y-4'>
-														{Array.from(aulasPorData.entries()).map(
-															([data, aulasDoDia]) => {
-																const aulasFiltradas =
-																	filtroAulaHoje === "todas"
-																		? aulasDoDia
-																		: aulasDoDia.filter(
-																				(a) => a.name === filtroAulaHoje,
-																			);
-																if (aulasFiltradas.length === 0) return null;
-																return (
-																	<div key={data}>
-																		<span className='text-gray-900 dark:text-white inline-block uppercase font-medium tracking-wider text-xs mb-2'>
-																			{formatarDataExibicao(data)}
-																		</span>
-																		{aulasFiltradas.map((aula, idx) => (
-																			<div
-																				key={`${aula.activityDate}-${aula.startTime}-${aula.name}-${idx}`}
-																				className='flex flex-col md:flex-row md:items-center gap-0.5 md:gap-0 mb-2'>
-																				<div className='w-full md:w-4/12 md:min-w-14'>
-																					<span className='text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap'>
-																						{aula.startTime}
-																					</span>
-																				</div>
-																				<div className='w-full md:w-8/12 flex items-center gap-2'>
-																					<span
-																						className={`shrink-0 w-2 h-2 rounded-full ${corAula(aula.idActivity)}`}
-																						aria-hidden
-																					/>
-																					<span className='text-xs font-medium text-gray-800 dark:text-white'>
-																						{aula.name}
-																					</span>
-																					{aula.capacity == null ||
-																					aula.capacity - aula.ocupation > 0 ? (
-																						<span className='inline-flex items-center justify-center shrink-0 min-w-8 h-6 px-1.5 rounded-full  text-quattor-verde dark:bg-quattor-verde/25 text-xs font-medium gap-1'>
-																							<HiMiniUserPlus
-																								className='w-3 h-3 shrink-0'
-																								aria-hidden
-																							/>
-																							{/* <span>
-																								{aula.capacity - aula.ocupation}
-																							</span> */}
-																						</span>
-																					) : null}
-																				</div>
-																			</div>
-																		))}
-																	</div>
-																);
-															},
-														)}
-													</div>
-												</>
-											)}
-										</div>
-									</div>
+			<main className='bg-quattor-fundo'>
+				<div className='mx-auto max-w-6xl space-y-10 px-4 py-6 sm:py-10'>
+					{/* Bento: destaque + horário + contato */}
+					<section className='grid gap-4 lg:grid-cols-3'>
+						<div
+							className='relative flex min-h-[300px] overflow-hidden rounded-3xl bg-cover bg-center shadow-lg lg:col-span-2 lg:row-span-2 lg:min-h-[420px]'
+							style={{ backgroundImage: `url('/backgroud%20quattor.webp')` }}>
+							<div className='absolute inset-0 bg-gradient-to-t from-quattor-azul-escuro via-quattor-azul-escuro/70 to-quattor-azul-escuro/10' />
+							<div className='relative mt-auto w-full p-6 sm:p-8'>
+								<p className='mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur'>
+									<MapPin className='h-3.5 w-3.5' />
+									Águas Claras · Brasília
+								</p>
+								<h1 className='max-w-lg text-3xl font-bold leading-tight text-white sm:text-4xl'>
+									Musculação, natação, lutas e dança no mesmo lugar.
+								</h1>
+								<div className='mt-5 flex flex-wrap gap-3'>
+									<a
+										href={WHATSAPP}
+										target='_blank'
+										rel='noreferrer'
+										className='inline-flex items-center gap-2 rounded-xl bg-quattor-laranja px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:brightness-105'>
+										<UserPlus className='h-4 w-4' />
+										Agendar aula experimental
+									</a>
+									<Link
+										to='/login'
+										className='inline-flex items-center gap-2 rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/40 backdrop-blur transition hover:bg-white/20'>
+										<LogIn className='h-4 w-4' />
+										Área do aluno
+									</Link>
 								</div>
 							</div>
 						</div>
-					</div>
-				</div>
-			</section>
 
-			{/* Modalidades / Atividades */}
-			<section className='py-10 bg-quattor-cinza-claro dark:bg-gray-950'>
-				<div className='mx-auto px-6 max-w-6xl'>
-					<h2 className='text-2xl font-bold text-center text-gray-800 dark:text-white mb-8'>
-						Nossas Modalidades
-					</h2>
-					<div className='flex flex-wrap -mx-4'>
-						{[
-							{
-								title: "Musculação",
-								subtitle: "Método exclusivo e Treinos semanais",
-								coverImg: "/musc.webp",
-								avatarImg: "/bola_quattor.svg",
-								badge: "Método Quattor",
-							},
-							{
-								title: "Natação",
-								subtitle: "Piscina salinizada e aquecida",
-								coverImg: "/natacao.webp",
-								avatarImg: "/bola_quattor.svg",
-								badge: "Piscina salinizada",
-							},
-							{
-								title: "Ballet",
-								subtitle: "Infantil , Adulto e Contemporâneo",
-								coverImg: "/ballet.webp",
-								avatarImg: "/bola_quattor.svg",
-								badge: "Infantil e Adulto ",
-							},
-							{
-								title: "Boxe",
-								subtitle: "Boxe Fitness",
-								coverImg: "/boxe.webp",
-								avatarImg: "/bola_quattor.svg",
-								badge: "Boxe Fitness",
-							},
-						].map((item) => (
-							<div
-								key={item.title}
-								className='w-full md:w-1/2 lg:w-1/3 py-2 px-2'>
-								<a href='/aulas'>
-									<div className='bg-white dark:bg-gray-900 relative shadow p-2 rounded-xl text-gray-800 dark:text-gray-200 hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-800'>
-										<div className='right-0 mt-4 rounded-l-full absolute text-center font-bold text-xs text-white px-2 py-1 bg-quattor-laranja'>
-											{item.badge}
-										</div>
-										<img
-											src={item.coverImg}
-											alt={item.title}
-											className='h-32 rounded-lg w-full object-cover'
-										/>
-										<div className='flex justify-center'>
-											<img
-												src={item.avatarImg}
-												alt={item.title}
-												className='rounded-full -mt-6 border-4 object-center object-contain border-white dark:border-gray-900 bg-white p-1 h-16 w-16'
-											/>
-										</div>
-										<div className='py-2 px-2'>
-											<div className='font-bold text-center text-gray-800 dark:text-white'>
-												{item.title}
-											</div>
-											<div className='text-sm font-light text-center my-2 text-gray-600 dark:text-gray-400'>
-												{item.subtitle}
-											</div>
-										</div>
-									</div>
-								</a>
+						<div className='rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-100'>
+							<div className='flex items-center gap-3'>
+								<IconeBento cor='bg-quattor-azul/10'>
+									<Clock className='h-5 w-5 text-quattor-azul' />
+								</IconeBento>
+								<h2 className='font-bold text-quattor-azul-escuro'>Horário de funcionamento</h2>
 							</div>
-						))}
-					</div>
+							<dl className='mt-5 space-y-3 text-sm'>
+								<div className='flex items-center justify-between border-b border-gray-100 pb-3'>
+									<dt className='text-gray-500'>Segunda a sexta</dt>
+									<dd className='font-semibold text-quattor-azul-escuro'>5h às 23h</dd>
+								</div>
+								<div className='flex items-center justify-between'>
+									<dt className='text-gray-500'>Sáb, dom e feriados</dt>
+									<dd className='font-semibold text-quattor-azul-escuro'>8h às 12h</dd>
+								</div>
+							</dl>
+						</div>
+
+						<div className='rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-100'>
+							<div className='flex items-center gap-3'>
+								<IconeBento cor='bg-quattor-laranja/10'>
+									<MapPin className='h-5 w-5 text-quattor-laranja' />
+								</IconeBento>
+								<div>
+									<h2 className='font-bold text-quattor-azul-escuro'>Onde estamos</h2>
+									<p className='text-sm text-gray-500'>Rua 5 Sul · Águas Claras</p>
+								</div>
+							</div>
+							<div className='mt-5 space-y-2'>
+								<a
+									href={WHATSAPP}
+									target='_blank'
+									rel='noreferrer'
+									className='flex items-center justify-between rounded-xl bg-quattor-verde px-4 py-3 text-sm font-semibold text-white transition hover:brightness-105'>
+									<span className='inline-flex items-center gap-2'>
+										<FaWhatsapp className='h-5 w-5' />
+										{TELEFONE}
+									</span>
+									<ArrowRight className='h-4 w-4' />
+								</a>
+								<div className='grid grid-cols-2 gap-2'>
+									<a
+										href='https://www.instagram.com/quattor_academia/'
+										target='_blank'
+										rel='noreferrer'
+										className='inline-flex items-center justify-center gap-2 rounded-xl bg-quattor-fundo px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:text-quattor-azul'>
+										<FaInstagram className='h-4 w-4' />
+										Instagram
+									</a>
+									<a
+										href='mailto:recepcao@quattoracademia.com'
+										className='inline-flex items-center justify-center gap-2 rounded-xl bg-quattor-fundo px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:text-quattor-azul'>
+										<Mail className='h-4 w-4' />
+										E-mail
+									</a>
+								</div>
+							</div>
+						</div>
+					</section>
+
+					{/* Modalidades */}
+					<section>
+						<div className='mb-4 flex items-end justify-between'>
+							<h2 className='text-xl font-bold text-quattor-azul-escuro sm:text-2xl'>Nossas modalidades</h2>
+						</div>
+						<div className='grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4'>
+							{MODALIDADES.map((m) => {
+								const conteudo = (
+									<>
+										<img
+											src={m.imagem}
+											alt=''
+											className='absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105'
+										/>
+										<div className='absolute inset-0 bg-gradient-to-t from-quattor-azul-escuro/95 via-quattor-azul-escuro/40 to-transparent' />
+										<span className='absolute left-3 top-3 rounded-full bg-quattor-laranja px-2.5 py-1 text-[11px] font-semibold text-white'>
+											{m.selo}
+										</span>
+										<div className='relative mt-auto p-4 text-left'>
+											<h3 className='text-lg font-bold text-white'>{m.titulo}</h3>
+											<p className='mt-0.5 hidden text-xs text-white/75 sm:block'>{m.subtitulo}</p>
+											<p className='mt-2 inline-flex items-center gap-1 text-xs font-semibold text-white'>
+												{m.busca ? "Ver aulas de hoje" : "Livre no horário de funcionamento"}
+												{m.busca && <ArrowRight className='h-3.5 w-3.5' />}
+											</p>
+										</div>
+									</>
+								);
+								const classe =
+									"group relative flex aspect-[4/5] overflow-hidden rounded-3xl shadow-sm sm:aspect-[3/4]";
+								return m.busca ? (
+									<button key={m.titulo} type='button' onClick={() => filtrarPorModalidade(m.busca)} className={classe}>
+										{conteudo}
+									</button>
+								) : (
+									<div key={m.titulo} className={classe}>
+										{conteudo}
+									</div>
+								);
+							})}
+						</div>
+					</section>
+
+					{/* Aulas de hoje, com busca */}
+					<section ref={secaoAulas} className='scroll-mt-24 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-gray-100 sm:p-6'>
+						<div className='flex flex-wrap items-center justify-between gap-3'>
+							<div className='flex items-center gap-3'>
+								<IconeBento cor='bg-quattor-azul/10'>
+									<CalendarDays className='h-5 w-5 text-quattor-azul' />
+								</IconeBento>
+								<div>
+									<h2 className='font-bold text-quattor-azul-escuro'>Aulas de hoje</h2>
+									<p className='text-sm text-gray-500'>
+										{aulas.length} {aulas.length === 1 ? "aula" : "aulas"} na grade
+									</p>
+								</div>
+							</div>
+							<div className='inline-flex rounded-xl bg-quattor-fundo p-1 text-xs font-semibold'>
+								{[
+									{ valor: true, rotulo: "Próximas" },
+									{ valor: false, rotulo: "O dia todo" },
+								].map((opcao) => (
+									<button
+										key={opcao.rotulo}
+										type='button'
+										onClick={() => setSoProximas(opcao.valor)}
+										className={`rounded-lg px-3 py-1.5 transition ${
+											soProximas === opcao.valor ? "bg-white text-quattor-azul-escuro shadow-sm" : "text-gray-500"
+										}`}>
+										{opcao.rotulo}
+									</button>
+								))}
+							</div>
+						</div>
+
+						<label className='relative mt-5 block'>
+							<span className='sr-only'>Buscar aula</span>
+							<Search className='pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400' />
+							<input
+								type='search'
+								value={busca}
+								onChange={(e) => setBusca(e.target.value)}
+								placeholder='Buscar aula ou professor (ex.: natação, pilates)'
+								className='w-full rounded-xl border border-gray-200 bg-quattor-fundo py-3 pl-10 pr-4 text-sm text-quattor-azul-escuro placeholder-gray-400 focus:border-transparent focus:bg-white focus:outline-none focus:ring-2 focus:ring-quattor-azul'
+							/>
+						</label>
+
+						{modalidades.length > 1 && (
+							<div className='-mx-5 mt-3 overflow-x-auto px-5 sm:-mx-6 sm:px-6'>
+								<div className='flex w-max gap-2 pb-1'>
+									{[null, ...modalidades].map((m) => {
+										const ativo = modalidade === m;
+										return (
+											<button
+												key={m ?? "todas"}
+												type='button'
+												onClick={() => setModalidade(m)}
+												className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+													ativo
+														? "bg-quattor-azul-escuro text-white"
+														: "bg-white text-gray-600 ring-1 ring-gray-200 hover:ring-quattor-azul"
+												}`}>
+												{m && <span className={`h-2 w-2 rounded-full ${corDaModalidade(m)}`} />}
+												{m ?? "Todas"}
+											</button>
+										);
+									})}
+								</div>
+							</div>
+						)}
+
+						{filtradas.length === 0 ? (
+							<div className='flex flex-col items-center py-10 text-center'>
+								<p className='font-medium text-quattor-azul-escuro'>
+									{aulas.length === 0
+										? "Nenhuma aula na grade de hoje."
+										: soProximas && !filtrando
+											? "As aulas de hoje já terminaram."
+											: "Nenhuma aula encontrada."}
+								</p>
+								{(filtrando || soProximas) && aulas.length > 0 && (
+									<button
+										type='button'
+										onClick={() => {
+											limparFiltros();
+											setSoProximas(false);
+										}}
+										className='mt-3 inline-flex items-center gap-1 text-sm font-semibold text-quattor-azul hover:underline'>
+										<X className='h-4 w-4' />
+										Ver todas as aulas do dia
+									</button>
+								)}
+							</div>
+						) : (
+							<>
+								<ul className='mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3'>
+									{visiveis.map((aula, idx) => {
+										const mod = modalidadeDa(aula.name);
+										return (
+											<li
+												key={`${aula.startTime}-${aula.name}-${idx}`}
+												className='flex items-start gap-3 rounded-2xl bg-quattor-fundo p-3'>
+												<div className='w-12 shrink-0 pt-0.5 text-sm font-bold tabular-nums text-quattor-azul-escuro'>
+													{aula.startTime}
+												</div>
+												<div className='min-w-0 flex-1'>
+													<p className='flex items-start gap-1.5 text-sm font-semibold leading-snug text-quattor-azul-escuro'>
+														<span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${corDaModalidade(mod)}`} aria-hidden />
+														<span className='line-clamp-2'>{aula.name}</span>
+													</p>
+													<p className='mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-gray-500'>
+														{aula.instructor && <span>{primeiroNome(aula.instructor)}</span>}
+														{aula.endTime && <span>até {aula.endTime}</span>}
+													</p>
+												</div>
+											</li>
+										);
+									})}
+								</ul>
+								{filtradas.length > AULAS_INICIAIS && (
+									<div className='mt-4 text-center'>
+										<button
+											type='button'
+											onClick={() => setVerTodas((v) => !v)}
+											className='text-sm font-semibold text-quattor-azul hover:underline'>
+											{verTodas ? "Mostrar menos" : `Ver todas (${filtradas.length})`}
+										</button>
+									</div>
+								)}
+							</>
+						)}
+					</section>
 				</div>
-			</section>
+			</main>
 		</>
 	);
 }
