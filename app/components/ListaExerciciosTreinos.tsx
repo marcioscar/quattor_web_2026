@@ -2,22 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFetcher } from "react-router";
-import { ChevronDown, Timer } from "lucide-react";
-import { Badge } from "~/components/ui/badge";
-import { Button, buttonVariants } from "~/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "~/components/ui/card";
+import { Check, ChevronDown, History, Plus, SkipForward, Timer } from "lucide-react";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "~/components/ui/collapsible";
-import { cn } from "~/lib/utils";
 import { extrairDetalhesExercicio } from "~/utils/exercicioDetalhes";
 import {
 	chaveExercicio,
@@ -62,15 +52,6 @@ function salvarSetStorage(chave: string, valores: Set<string>): void {
 	}
 }
 
-function DetalheLinha({ rotulo, valor }: { rotulo: string; valor: string }) {
-	return (
-		<div>
-			<span className=' text-muted-foreground'>{rotulo}</span>{" "}
-			<span className='text-medium'>{valor}</span>
-		</div>
-	);
-}
-
 function midiaEhImagem(url: string): boolean {
 	return /\.(gif|png|jpe?g|webp|svg)(\?|$)/i.test(url);
 }
@@ -112,41 +93,38 @@ function TimerDescansoPainel({
 }: TimerDescansoPainelProps) {
 	return (
 		<div
-			className='flex w-full max-w-full flex-wrap items-center justify-between gap-x-2 gap-y-2 rounded-md border border-primary/30 bg-primary/5 px-2 py-2 sm:gap-x-3 sm:px-3 sm:py-2.5'
+			className='flex items-center justify-between gap-3 rounded-2xl bg-quattor-azul-escuro px-4 py-3 text-white'
 			role='status'
 			aria-live='polite'
 			aria-label='Timer de descanso entre séries'>
-			<div className='flex items-center gap-1.5 text-muted-foreground sm:gap-2'>
-				<Timer
-					className='size-3.5 shrink-0 text-primary sm:size-4'
-					aria-hidden
-				/>
-				<span className='hidden text-xs font-medium text-foreground sm:inline'>
-					Descanso
+			<div className='flex items-center gap-3'>
+				<span className='flex h-9 w-9 items-center justify-center rounded-full bg-white/10'>
+					<Timer className='h-4 w-4 text-quattor-laranja' aria-hidden />
 				</span>
-				<span
-					className='font-mono text-xl font-semibold tabular-nums tracking-tight text-foreground sm:text-2xl'
-					aria-label={`${segundosRestantes} segundos restantes`}>
-					{formatarTempoDescanso(segundosRestantes)}
-				</span>
+				<div>
+					<p className='text-[11px] uppercase tracking-wider text-white/60'>Descanso</p>
+					<p
+						className='font-mono text-2xl font-bold tabular-nums leading-none'
+						aria-label={`${segundosRestantes} segundos restantes`}>
+						{formatarTempoDescanso(segundosRestantes)}
+					</p>
+				</div>
 			</div>
-			<div className='flex shrink-0 gap-1.5'>
-				<Button
+			<div className='flex gap-2'>
+				<button
 					type='button'
-					variant='outline'
-					size='sm'
-					className='h-8 px-2 text-xs sm:h-9 sm:px-3 sm:text-sm'
-					onClick={onAdicionarTempo}>
-					+{ADICIONAR_DESCANSO_SEGUNDOS}s
-				</Button>
-				<Button
+					onClick={onAdicionarTempo}
+					className='inline-flex items-center gap-1 rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/20'>
+					<Plus className='h-3.5 w-3.5' />
+					{ADICIONAR_DESCANSO_SEGUNDOS}s
+				</button>
+				<button
 					type='button'
-					variant='outline'
-					size='sm'
-					className='h-8 px-2 text-xs sm:h-9 sm:px-3 sm:text-sm'
-					onClick={onPular}>
+					onClick={onPular}
+					className='inline-flex items-center gap-1 rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/20'>
+					<SkipForward className='h-3.5 w-3.5' />
 					Pular
-				</Button>
+				</button>
 			</div>
 		</div>
 	);
@@ -173,6 +151,7 @@ function ChecklistSeries({
 	const [statusSalvar, setStatusSalvar] = useState<"" | "ok" | "erro">("");
 	const [mensagemErro, setMensagemErro] = useState("");
 	const [descansoSegundos, setDescansoSegundos] = useState<number | null>(null);
+	const [carga, setCarga] = useState("");
 
 	useEffect(() => {
 		setConcluidas(Array.from({ length: quantidade }, () => false));
@@ -237,13 +216,14 @@ function ChecklistSeries({
 			onTreinoRegistrado({
 				nome: nomeExercicio,
 				grupo,
-				carga: "",
+				carga: carga.trim(),
 				data: dataAgoraFormatoHistorico(),
 			});
 			return;
 		}
 		setStatusSalvar("erro");
 		setMensagemErro(fetcher.data.message || "Erro ao registrar treino.");
+		// `carga` fica de fora de propósito: só vale a do momento do envio.
 	}, [fetcher.data, grupo, nomeExercicio, onTreinoRegistrado]);
 
 	const registrarTreino = () => {
@@ -251,66 +231,91 @@ function ChecklistSeries({
 		formData.set("intent", "registrarTreino");
 		formData.set("grupo", grupo);
 		formData.set("nome", nomeExercicio);
-		formData.set("carga", "");
+		formData.set("carga", carga.trim());
 		setStatusSalvar("");
 		setMensagemErro("");
 		fetcher.submit(formData, { method: "post" });
 	};
 
 	return (
-		<div className='mt-2 rounded-md border border-border/70 p-3'>
-			<div className='mb-2 text-xs text-muted-foreground'>
-				Progresso: {totalConcluidas}/{quantidade} séries concluídas
+		<div className='space-y-3'>
+			<div className='flex items-center justify-between'>
+				<p className='text-xs font-semibold uppercase tracking-wider text-gray-500'>Séries</p>
+				<p className='text-xs font-semibold text-quattor-azul-escuro'>
+					{totalConcluidas}/{quantidade}
+				</p>
 			</div>
-			<div className='flex flex-wrap gap-3'>
-				{Array.from({ length: quantidade }, (_, indice) => (
-					<label
-						key={`serie-${indice + 1}`}
-						className='inline-flex cursor-pointer items-center gap-2 text-sm'>
-						<input
-							type='checkbox'
-							checked={Boolean(concluidas[indice])}
-							onChange={() => alternarSerie(indice)}
-							className='size-4 accent-primary'
-						/>
-						<span className='text-sm  font-light'>Série {indice + 1}</span>
-					</label>
-				))}
+			<div
+				className='grid gap-2'
+				style={{ gridTemplateColumns: `repeat(${Math.min(quantidade, 4)}, minmax(0, 1fr))` }}>
+				{Array.from({ length: quantidade }, (_, indice) => {
+					const feita = Boolean(concluidas[indice]);
+					return (
+						<button
+							key={`serie-${indice + 1}`}
+							type='button'
+							aria-pressed={feita}
+							onClick={() => alternarSerie(indice)}
+							className={`flex items-center justify-center gap-1.5 rounded-xl px-3 py-3 text-sm font-semibold transition ${
+								feita
+									? "bg-quattor-verde text-white shadow-sm"
+									: "bg-quattor-fundo text-quattor-azul-escuro ring-1 ring-gray-200 hover:ring-quattor-verde"
+							}`}>
+							{feita && <Check className='h-4 w-4' />}
+							Série {indice + 1}
+						</button>
+					);
+				})}
 			</div>
+
 			{descansoSegundos !== null && descansoSegundos > 0 ? (
-				<div className='mt-3 w-full'>
-					<TimerDescansoPainel
-						segundosRestantes={descansoSegundos}
-						onAdicionarTempo={adicionarDescanso}
-						onPular={pularDescanso}
-					/>
-				</div>
+				<TimerDescansoPainel
+					segundosRestantes={descansoSegundos}
+					onAdicionarTempo={adicionarDescanso}
+					onPular={pularDescanso}
+				/>
 			) : null}
-			<div className='mt-3 flex items-center gap-3'>
-				<Button
+
+			<div className='flex flex-col gap-2 sm:flex-row'>
+				<label className='relative sm:w-40'>
+					<span className='sr-only'>Carga (opcional)</span>
+					<input
+						type='text'
+						inputMode='decimal'
+						value={carga}
+						onChange={(e) => setCarga(e.target.value)}
+						placeholder='Carga (ex.: 20 kg)'
+						maxLength={30}
+						className='w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm text-quattor-azul-escuro placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-quattor-azul'
+					/>
+				</label>
+				<button
 					type='button'
-					size='sm'
 					onClick={registrarTreino}
-					disabled={!treinoConcluido || salvando}>
-					{salvando ? "Registrando..." : "Registrar treino"}
-				</Button>
-				{statusSalvar === "ok" ? (
-					<span className='text-xs text-emerald-600'>
-						Treino registrado no histórico.
-					</span>
-				) : null}
-				{statusSalvar === "erro" ? (
-					<span className='text-xs text-destructive'>
-						{mensagemErro || "Erro ao registrar treino. Tente novamente."}
-					</span>
-				) : null}
+					disabled={!treinoConcluido || salvando}
+					className='flex-1 rounded-xl bg-quattor-laranja px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 disabled:shadow-none'>
+					{salvando
+						? "Registrando..."
+						: treinoConcluido
+							? "Registrar exercício"
+							: `Marque as ${quantidade} séries para registrar`}
+				</button>
 			</div>
+			{statusSalvar === "ok" ? (
+				<p className='text-sm font-medium text-quattor-verde'>Exercício registrado no histórico.</p>
+			) : null}
+			{statusSalvar === "erro" ? (
+				<p className='text-sm text-quattor-vermelho'>
+					{mensagemErro || "Erro ao registrar. Tente novamente."}
+				</p>
+			) : null}
 		</div>
 	);
 }
 
 type ExercicioCollapsibleRowProps = {
 	item: unknown;
+	numero: number;
 	registration: number;
 	grupo: string;
 	historicoTreinos: TreinoHistorico[];
@@ -320,12 +325,14 @@ type ExercicioCollapsibleRowProps = {
 
 function ExercicioCollapsibleRow({
 	item,
+	numero,
 	registration,
 	grupo,
 	historicoTreinos,
 	foiTreinadoHojeLocal,
 	onTreinoRegistrado,
 }: ExercicioCollapsibleRowProps) {
+	const [aberto, setAberto] = useState(false);
 	const d = extrairDetalhesExercicio(item);
 	const temDetalhe = Boolean(d.repeticoes || d.videoUrl || d.notas);
 	const quantidadeSeries = extrairQuantidadeSeries(d.repeticoes);
@@ -341,91 +348,94 @@ function ExercicioCollapsibleRow({
 
 	return (
 		<li
-			className='overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm'
-			role='listitem'>
-			<Collapsible className='group rounded-md data-[state=open]:bg-muted/40'>
-				<CollapsibleTrigger
-					className={cn(
-						buttonVariants({ variant: "ghost" }),
-						"h-auto min-h-10 w-full justify-between gap-2 px-4 py-3 text-left font-normal",
-					)}>
-					<div className='min-w-0 flex flex-1 items-center gap-2'>
-						<span className='min-w-0 flex-1 truncate'>{d.nome}</span>
-						{foiTreinadoHoje ? (
-							<Badge
-								variant='secondary'
-								className='bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300'>
-								feito
-							</Badge>
+			className={`overflow-hidden rounded-2xl bg-white shadow-sm transition ${
+				foiTreinadoHoje ? "ring-2 ring-quattor-verde/60" : "ring-1 ring-gray-100"
+			}`}>
+			<Collapsible open={aberto} onOpenChange={setAberto}>
+				<CollapsibleTrigger className='flex w-full items-center gap-3 px-4 py-4 text-left'>
+					<span
+						className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+							foiTreinadoHoje ? "bg-quattor-verde text-white" : "bg-quattor-fundo text-quattor-azul-escuro"
+						}`}>
+						{foiTreinadoHoje ? <Check className='h-4 w-4' /> : numero}
+					</span>
+					<span className='min-w-0 flex-1'>
+						<span className='block font-semibold leading-snug text-quattor-azul-escuro'>{d.nome}</span>
+						{quantidadeSeries ? (
+							<span className='mt-0.5 block text-xs text-gray-500'>
+								{quantidadeSeries} séries{foiTreinadoHoje ? " · feito hoje" : ""}
+							</span>
+						) : foiTreinadoHoje ? (
+							<span className='mt-0.5 block text-xs text-quattor-verde'>feito hoje</span>
 						) : null}
-					</div>
-					<ChevronDown className='size-4 shrink-0 transition-transform group-data-[state=open]:rotate-180' />
+					</span>
+					<ChevronDown
+						className={`h-5 w-5 shrink-0 text-gray-400 transition-transform ${aberto ? "rotate-180" : ""}`}
+					/>
 				</CollapsibleTrigger>
-				<CollapsibleContent className='flex flex-col gap-2 border-t border-border px-4 py-3 text-sm'>
-					{temDetalhe ? (
+				<CollapsibleContent className='space-y-4 border-t border-gray-100 px-4 pb-5 pt-4'>
+					{!temDetalhe ? (
+						<p className='text-sm italic text-gray-500'>Sem detalhes adicionais para este exercício.</p>
+					) : (
 						<>
+							{d.videoUrl && midiaEhImagem(d.videoUrl) && (
+								<div className='flex justify-center rounded-2xl bg-white ring-1 ring-gray-100'>
+									<img
+										src={d.videoUrl}
+										alt={`Demonstração: ${d.nome}`}
+										className='max-h-64 w-full max-w-sm object-contain'
+										loading='lazy'
+									/>
+								</div>
+							)}
 							{d.repeticoes && (
-								<div>
-									<DetalheLinha rotulo='Séries:' valor={d.repeticoes} />
-									{quantidadeSeries && quantidadeSeries > 0 ? (
-										<ChecklistSeries
-											quantidade={quantidadeSeries}
-											nomeExercicio={d.nome}
-											registration={registration}
-											grupo={grupo}
-											onTreinoRegistrado={onTreinoRegistrado}
-										/>
-									) : null}
+								<div className='rounded-2xl bg-quattor-fundo px-4 py-3'>
+									<p className='text-xs font-semibold uppercase tracking-wider text-gray-500'>Como fazer</p>
+									<p className='mt-1 text-sm leading-relaxed text-quattor-azul-escuro'>{d.repeticoes}</p>
 								</div>
 							)}
 							{d.notas && (
-								<DetalheLinha rotulo='Observações:' valor={d.notas} />
-							)}
-							{d.videoUrl && (
-								<div className='flex flex-col gap-2'>
-									<span className='font-medium text-muted-foreground'>
-										Vídeo
-									</span>
-									{midiaEhImagem(d.videoUrl) ? (
-										<img
-											src={d.videoUrl}
-											alt={`Demonstração: ${d.nome}`}
-											className='max-h-56 w-full max-w-md rounded-md object-contain'
-											loading='lazy'
-										/>
-									) : null}
-								</div>
-							)}
-							<div className='mt-2 rounded-md border border-border/70 p-3'>
-								<div className='text-xs font-medium text-muted-foreground'>
-									Histórico (último mês)
-								</div>
-								{historicoExercicio.length === 0 ? (
-									<p className='mt-2 text-xs text-muted-foreground italic'>
-										Sem registros deste exercício nos últimos 30 dias.
+								<div className='rounded-2xl bg-quattor-laranja/10 px-4 py-3'>
+									<p className='text-xs font-semibold uppercase tracking-wider text-quattor-laranja'>
+										Observação
 									</p>
+									<p className='mt-1 text-sm text-quattor-azul-escuro'>{d.notas}</p>
+								</div>
+							)}
+							{quantidadeSeries && quantidadeSeries > 0 ? (
+								<ChecklistSeries
+									quantidade={quantidadeSeries}
+									nomeExercicio={d.nome}
+									registration={registration}
+									grupo={grupo}
+									onTreinoRegistrado={onTreinoRegistrado}
+								/>
+							) : null}
+							<div>
+								<p className='mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500'>
+									<History className='h-3.5 w-3.5' />
+									Últimos 30 dias
+								</p>
+								{historicoExercicio.length === 0 ? (
+									<p className='text-sm text-gray-400'>Nenhum registro deste exercício ainda.</p>
 								) : (
-									<ul className='mt-2 space-y-2'>
+									<ul className='space-y-1.5'>
 										{historicoExercicio.slice(0, 5).map((registro, idx) => (
 											<li
 												key={`${registro.data}-${registro.nome}-${idx}`}
-												className='rounded-md bg-muted/40 px-2 py-1 text-xs'>
-												<div
-													className='font-medium truncate'
-													title={`${formatarDataHistoricoExibicao(registro.data)} - ${registro.nome}`}>
-													{formatarDataHistoricoExibicao(registro.data)} -{" "}
-													{registro.nome}
-												</div>
+												className='flex items-center justify-between gap-2 rounded-xl bg-quattor-fundo px-3 py-2 text-sm'>
+												<span className='text-gray-600'>
+													{formatarDataHistoricoExibicao(registro.data)}
+												</span>
+												{registro.carga && registro.carga !== "-" && (
+													<span className='font-semibold text-quattor-azul-escuro'>{registro.carga}</span>
+												)}
 											</li>
 										))}
 									</ul>
 								)}
 							</div>
 						</>
-					) : (
-						<p className='text-xs text-muted-foreground italic'>
-							Sem detalhes adicionais para este exercício.
-						</p>
 					)}
 				</CollapsibleContent>
 			</Collapsible>
@@ -474,38 +484,54 @@ export function ListaExerciciosTreinos({
 		[storageKey],
 	);
 
+	const feitosHoje = itens.filter((item) => {
+		const nome = extrairDetalhesExercicio(item).nome;
+		const chave = chaveExercicio(nome);
+		return (
+			(chave.length > 0 && exerciciosFeitosHojeLocal.has(chave)) ||
+			exercicioFoiTreinadoHoje(historicoVisivel, nome)
+		);
+	}).length;
+	const percentual = itens.length ? Math.round((feitosHoje / itens.length) * 100) : 0;
+
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle>Exercícios</CardTitle>
-				<CardDescription>
-					{itens.length} exercício{itens.length === 1 ? "" : "s"} encontrado
-					{itens.length === 1 ? "" : "s"}. Toque para ver repetições e demais
-					detalhes.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<ul className='flex flex-col gap-2' role='list'>
-					{itens.map((item, index) => {
-						const detalhes = extrairDetalhesExercicio(item);
-						const chaveLocal = chaveExercicio(detalhes.nome);
-						const foiTreinadoHojeLocal =
-							chaveLocal.length > 0 &&
-							exerciciosFeitosHojeLocal.has(chaveLocal);
-						return (
-							<ExercicioCollapsibleRow
-								key={index}
-								item={item}
-								registration={registration}
-								grupo={grupo}
-								historicoTreinos={historicoVisivel}
-								foiTreinadoHojeLocal={foiTreinadoHojeLocal}
-								onTreinoRegistrado={marcarTreinoComoFeito}
-							/>
-						);
-					})}
-				</ul>
-			</CardContent>
-		</Card>
+		<section className='space-y-3'>
+			<div className='rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-100'>
+				<div className='flex items-center justify-between text-sm'>
+					<span className='font-semibold text-quattor-azul-escuro'>
+						{feitosHoje === itens.length && itens.length > 0
+							? "Treino completo! 💪"
+							: `${feitosHoje} de ${itens.length} exercícios feitos hoje`}
+					</span>
+					<span className='text-xs font-semibold text-gray-400'>{percentual}%</span>
+				</div>
+				<div className='mt-2 h-2 overflow-hidden rounded-full bg-quattor-fundo'>
+					<div
+						className='h-full rounded-full bg-quattor-verde transition-all duration-500'
+						style={{ width: `${percentual}%` }}
+					/>
+				</div>
+			</div>
+			<ul className='flex flex-col gap-3'>
+				{itens.map((item, index) => {
+					const detalhes = extrairDetalhesExercicio(item);
+					const chaveLocal = chaveExercicio(detalhes.nome);
+					const foiTreinadoHojeLocal =
+						chaveLocal.length > 0 && exerciciosFeitosHojeLocal.has(chaveLocal);
+					return (
+						<ExercicioCollapsibleRow
+							key={index}
+							item={item}
+							numero={index + 1}
+							registration={registration}
+							grupo={grupo}
+							historicoTreinos={historicoVisivel}
+							foiTreinadoHojeLocal={foiTreinadoHojeLocal}
+							onTreinoRegistrado={marcarTreinoComoFeito}
+						/>
+					);
+				})}
+			</ul>
+		</section>
 	);
 }

@@ -1,10 +1,9 @@
-import { redirect } from "react-router";
-import { AlertCircle } from "lucide-react";
+import { Link, redirect } from "react-router";
+import { AlertCircle, ArrowLeft, Dumbbell } from "lucide-react";
 import { ListaExerciciosTreinos } from "../components/ListaExerciciosTreinos";
 import MainNavbar from "../components/MainNavbar";
-import { TreinosGrupoForm } from "../components/TreinosGrupoForm";
+import { TreinosGrupoForm, nomeGrupoExibicao } from "../components/TreinosGrupoForm";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
-import { Card, CardContent } from "~/components/ui/card";
 import {
 	GRUPOS_MUSCULARES,
 	type GrupoMuscular,
@@ -160,30 +159,30 @@ function extrairMensagemErro(error: unknown): string {
 }
 
 export default function Treinos({ loaderData }: Route.ComponentProps) {
-	const {
-		registration,
-		semana,
-		ano,
-		grupo,
-		exercicios,
-		historicoTreinos,
-		erroExercicios,
-	} =
+	const { registration, semana, grupo, exercicios, historicoTreinos, erroExercicios } =
 		loaderData as TreinosLoaderData;
 
 	return (
 		<>
 			<MainNavbar />
-			<div className='min-h-screen bg-quattor-fundo px-4 py-6 md:px-8'>
-				<div className='mx-auto flex max-w-2xl flex-col gap-6'>
-					<div className='flex flex-col gap-1'>
-						<h1 className='font-heading text-2xl font-semibold text-quattor-azul-escuro'>
-							Treinos
-						</h1>
-						<p className='text-sm text-muted-foreground'>
-							Escolha o grupo muscular para ver os exercícios.
+			<main className='min-h-screen bg-quattor-fundo px-4 pb-12 pt-6'>
+				<div className='mx-auto flex w-full max-w-3xl flex-col gap-5'>
+					{/* Topo */}
+					<section className='rounded-3xl bg-quattor-azul-escuro p-5 text-white shadow-lg sm:p-6'>
+						<Link
+							to={`/aluno/${registration}`}
+							className='mb-3 inline-flex items-center gap-1 text-sm font-medium text-white/70 hover:text-white'>
+							<ArrowLeft className='h-4 w-4' />
+							Voltar
+						</Link>
+						<p className='text-xs font-semibold uppercase tracking-wider text-quattor-laranja'>
+							Treino da semana {semana}
 						</p>
-					</div>
+						<h1 className='mt-1 text-2xl font-bold sm:text-3xl'>{nomeGrupoExibicao(grupo)}</h1>
+						<p className='mt-1 text-sm text-white/60'>
+							Toque num exercício para ver o vídeo, marcar as séries e registrar.
+						</p>
+					</section>
 
 					<TreinosGrupoForm registration={registration} grupoInicial={grupo} />
 
@@ -194,15 +193,16 @@ export default function Treinos({ loaderData }: Route.ComponentProps) {
 							<AlertDescription>{erroExercicios}</AlertDescription>
 						</Alert>
 					) : exercicios.length === 0 ? (
-						<Card>
-							<CardContent className='pt-6'>
-								<p className='text-sm text-muted-foreground'>
-									Nenhum exercício encontrado para esta combinação.
-								</p>
-							</CardContent>
-						</Card>
+						<section className='flex flex-col items-center rounded-3xl bg-white px-5 py-12 text-center shadow-sm ring-1 ring-gray-100'>
+							<span className='mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-quattor-fundo'>
+								<Dumbbell className='h-7 w-7 text-gray-400' />
+							</span>
+							<p className='font-medium text-quattor-azul-escuro'>Sem treino deste grupo nesta semana</p>
+							<p className='mt-1 max-w-xs text-sm text-gray-500'>Escolha outro grupo muscular acima.</p>
+						</section>
 					) : (
 						<ListaExerciciosTreinos
+							key={grupo}
 							itens={exercicios}
 							registration={registration}
 							grupo={grupo}
@@ -210,7 +210,7 @@ export default function Treinos({ loaderData }: Route.ComponentProps) {
 						/>
 					)}
 				</div>
-			</div>
+			</main>
 		</>
 	);
 }
