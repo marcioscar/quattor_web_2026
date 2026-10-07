@@ -1,13 +1,14 @@
 import type { Route } from "./+types/aluno";
 import {
-	HiIdentification,
-	HiFire,
-	HiSquaresPlus,
-	HiMiniWallet,
+	HiArrowRight,
+	HiCalendarDays,
 	HiCheckCircle,
-	HiClipboardDocumentList,
+	HiFire,
+	HiIdentification,
+	HiOutlineClipboardDocumentList,
+	HiPlay,
+	HiRectangleStack,
 } from "react-icons/hi2";
-import { GiMuscleUp } from "react-icons/gi";
 import { Link, redirect } from "react-router";
 import MainNavbar from "../components/MainNavbar";
 import { buscarAluno, buscarHistorico } from "../models/treinos.server";
@@ -192,178 +193,214 @@ async function alunoLoader(registration: number): Promise<aluno | null> {
 	return buscarAluno(registration);
 }
 
+/** "outubro" — rótulo dos números do mês. */
+function nomeMesAtual(): string {
+	return new Date().toLocaleDateString("pt-BR", { month: "long" });
+}
+
+/** "qua, 07/10" a partir de "07/10/2026". */
+function rotuloDia(dataBR: string): string {
+	const d = parseDataBR(dataBR);
+	if (!d) return dataBR;
+	const semana = d.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "");
+	return `${semana}, ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+const AVATAR_GENERICO =
+	"data:image/svg+xml;utf8," +
+	"<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'>" +
+	"<rect width='100%25' height='100%25' fill='%23e5e7eb'/>" +
+	"<circle cx='64' cy='50' r='24' fill='%239ca3af'/>" +
+	"<rect x='32' y='78' width='64' height='32' rx='16' fill='%239ca3af'/>" +
+	"</svg>";
+
+function Estatistica({
+	icone,
+	valor,
+	rotulo,
+	cor,
+}: {
+	icone: React.ReactNode;
+	valor: number;
+	rotulo: string;
+	cor: string;
+}) {
+	return (
+		<div className='flex flex-col items-center rounded-2xl bg-white p-3 text-center shadow-sm ring-1 ring-gray-100 sm:p-4'>
+			<span className={`mb-2 flex h-9 w-9 items-center justify-center rounded-full ${cor}`}>{icone}</span>
+			<span className='text-2xl font-bold leading-none text-quattor-azul-escuro'>{valor}</span>
+			<span className='mt-1 text-xs leading-tight text-gray-500'>{rotulo}</span>
+		</div>
+	);
+}
+
 export default function Aluno({ loaderData }: Route.ComponentProps) {
 	const { aluno, historico } = loaderData;
 	const diasTreinadosNoMes = contarDiasTreinadosNoMes(historico ?? []);
 	const gruposTreinadosNoMes = contarGruposTreinadosNoMes(historico ?? []);
-	const exerciciosTreinadosNoMes = contarExerciciosTreinadosNoMes(
-		historico ?? [],
-	);
-	const historicoPorData = agruparTreinosPorData(
-		filtrarTreinosMesAtual(historico ?? []),
-	);
-	const avatarGenerico =
-		"data:image/svg+xml;utf8," +
-		"<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'>" +
-		"<rect width='100%25' height='100%25' fill='%23e5e7eb'/>" +
-		"<circle cx='64' cy='50' r='24' fill='%239ca3af'/>" +
-		"<rect x='32' y='78' width='64' height='32' rx='16' fill='%239ca3af'/>" +
-		"</svg>";
+	const exerciciosTreinadosNoMes = contarExerciciosTreinadosNoMes(historico ?? []);
+	const historicoPorData = agruparTreinosPorData(filtrarTreinosMesAtual(historico ?? []));
+	const mes = nomeMesAtual();
 
 	if (!aluno) {
 		return (
-			<div className='min-h-screen flex items-center justify-center p-6'>
-				<p className='text-gray-500 dark:text-gray-400'>
-					Aluno não encontrado.
-				</p>
-			</div>
+			<>
+				<MainNavbar />
+				<div className='min-h-screen flex items-center justify-center bg-quattor-fundo p-6'>
+					<p className='text-gray-500'>Aluno não encontrado.</p>
+				</div>
+			</>
 		);
 	}
 
 	return (
 		<>
 			<MainNavbar />
-			<div className='flex flex-col items-center justify-center min-h-screen bg-quattor-fundo'>
-				<div className='  m-4'>
-					<div className='w-full mx-auto grid gap-4 grid-cols-1'>
-						<div className='flex flex-col'>
-							<div className='bg-quattor-cinza-claro shadow-sm md:min-w-xl mx-auto  rounded-2xl p-4'>
-								<div className='flex-none sm:flex'>
-									<div className=' relative h-32 w-32   sm:mb-0 mb-3'>
-										<img
-											src={aluno.photo || avatarGenerico}
-											alt='aluno'
-											className=' w-32 h-32 object-cover rounded-2xl'
-											onError={(event) => {
-												event.currentTarget.src = avatarGenerico;
-											}}
-										/>
-									</div>
-									<div className='flex-auto sm:ml-5 justify-evenly'>
-										<div className='flex items-center justify-between sm:mt-2'>
-											<div className='flex items-center'>
-												<div className='flex flex-col'>
-													<div className='w-full flex-none text-lg text-quattor-azul-escuro font-bold leading-none'>
-														{aluno.name}
-													</div>
-													<div className='flex-auto text-gray-400 my-1'>
-														<span className='mr-3 '>{aluno.plano}</span>
-														<span className='mr-3 border-r border-gray-600  max-h-0'></span>
-														<span>{aluno.endDate}</span>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div className='flex pt-2  text-sm text-gray-400'>
-											<div className='flex-1 inline-flex items-center'>
-												<HiIdentification className='w-5 h-5 mr-2' />
-												<p className=''>{aluno.registration}</p>
-											</div>
-											<div className='flex-1 inline-flex items-center'>
-												<HiFire className='w-5 h-5 mr-2' />
-												<p className=''>
-													{diasTreinadosNoMes}{" "}
-													{diasTreinadosNoMes === 1 || diasTreinadosNoMes === 0
-														? "dia de treino no mês"
-														: "dias de treino no mês"}
-												</p>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div className='mt-4 flex justify-end border-t border-gray-200 pt-4'>
-									<Link
-										to={`/treinos/${aluno.registration}`}
-										className='inline-flex items-center justify-center gap-2 rounded-xl bg-quattor-azul px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-quattor-azul focus-visible:ring-offset-2'>
-										<HiClipboardDocumentList className='h-5 w-5' />
-										Treinar
-									</Link>
-								</div>
+			<main className='min-h-screen bg-quattor-fundo px-4 pb-10 pt-6'>
+				<div className='mx-auto w-full max-w-xl space-y-4'>
+					{/* Cartão do aluno */}
+					<section className='overflow-hidden rounded-3xl bg-quattor-azul-escuro text-white shadow-lg'>
+						<div className='flex items-center gap-4 p-5'>
+							<img
+								src={aluno.photo || AVATAR_GENERICO}
+								alt={aluno.name}
+								className='h-20 w-20 shrink-0 rounded-full object-cover ring-4 ring-white/15 sm:h-24 sm:w-24'
+								onError={(event) => {
+									event.currentTarget.src = AVATAR_GENERICO;
+								}}
+							/>
+							<div className='min-w-0'>
+								<p className='text-sm text-white/60'>Olá,</p>
+								<h1 className='truncate text-2xl font-bold capitalize leading-tight'>
+									{aluno.name.toLowerCase()}
+								</h1>
+								<p className='mt-1 inline-flex items-center gap-1.5 text-xs text-white/60'>
+									<HiIdentification className='h-4 w-4' />
+									Matrícula {aluno.registration}
+								</p>
 							</div>
 						</div>
-						{/* stats */}
-						<div className='grid grid-cols-12 gap-4 '>
-							<div className='col-span-12 sm:col-span-6'>
-								<div className='p-4 relative  bg-quattor-cinza-claro  shadow-sm  rounded-2xl'>
-									{/* <HiSquaresPlus className='w-14 h-14  absolute bottom-4 right-3 text-quattor-verde' /> */}
-									<div className='text-2xl text-quattor-azul-escuro font-medium leading-8 mt-5'>
-										{gruposTreinadosNoMes}
-									</div>
-									<div className='text-sm text-gray-500'>Grupos Musculares</div>
+
+						{(aluno.plano || aluno.endDate) && (
+							<div className='mx-5 mb-5 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white/10 px-4 py-3'>
+								<div className='min-w-0'>
+									<p className='text-[11px] uppercase tracking-wider text-white/50'>Plano</p>
+									<p className='truncate text-sm font-semibold capitalize'>
+										{aluno.plano.toLowerCase() || "—"}
+									</p>
 								</div>
-							</div>
-							<div className='col-span-12 sm:col-span-6'>
-								<div className='p-4 relative  bg-quattor-cinza-claro shadow-sm  rounded-2xl'>
-									{/* <GiMuscleUp className='w-14 h-14  absolute bottom-4 right-3 text-quattor-vermelho' /> */}
-									<div className='flex justify-between items-center '>
-										<i className='fab fa-behance text-xl text-gray-400'></i>
+								{aluno.endDate && (
+									<div className='text-right'>
+										<p className='text-[11px] uppercase tracking-wider text-white/50'>Válido até</p>
+										<p className='text-sm font-semibold'>{aluno.endDate}</p>
 									</div>
-									<div className='text-2xl text-quattor-azul-escuro font-medium leading-8 mt-5'>
-										{exerciciosTreinadosNoMes}
-									</div>
-									<div className='text-sm text-gray-500'>Exercícios no mês</div>
-								</div>
+								)}
 							</div>
+						)}
+
+						<Link
+							to={`/treinos/${aluno.registration}`}
+							className='flex items-center justify-center gap-2 bg-quattor-laranja px-5 py-4 text-base font-semibold text-white transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white'>
+							<HiPlay className='h-5 w-5' />
+							Treinar agora
+						</Link>
+					</section>
+
+					{/* Números do mês */}
+					<section>
+						<h2 className='mb-2 px-1 text-sm font-semibold text-gray-500'>
+							Seu mês de {mes}
+						</h2>
+						<div className='grid grid-cols-3 gap-3'>
+							<Estatistica
+								icone={<HiFire className='h-5 w-5 text-quattor-laranja' />}
+								cor='bg-quattor-laranja/10'
+								valor={diasTreinadosNoMes}
+								rotulo={diasTreinadosNoMes === 1 ? "dia de treino" : "dias de treino"}
+							/>
+							<Estatistica
+								icone={<HiRectangleStack className='h-5 w-5 text-quattor-azul' />}
+								cor='bg-quattor-azul/10'
+								valor={gruposTreinadosNoMes}
+								rotulo={gruposTreinadosNoMes === 1 ? "grupo muscular" : "grupos musculares"}
+							/>
+							<Estatistica
+								icone={<HiCheckCircle className='h-5 w-5 text-quattor-verde' />}
+								cor='bg-quattor-verde/10'
+								valor={exerciciosTreinadosNoMes}
+								rotulo={exerciciosTreinadosNoMes === 1 ? "exercício" : "exercícios"}
+							/>
 						</div>
-						<div className='grid gap-4 grid-cols-1 md:grid-cols-2'>
-							<div className='flex flex-col w-full p-4 col-span-12 relative items-center justify-center bg-quattor-cinza-claro shadow-sm rounded-2xl'>
-								<div className=''>
-									<div className='text-center p-1 flex-auto justify-center'>
-										<HiMiniWallet className='w-10 h-10 flex items-center text-gray-600 mx-auto' />
+					</section>
 
-										<h2 className='text-xl font-bold py-4 text-quattor-azul-escuro'>
-											Histórico de treinos
-										</h2>
-									</div>
-									<div className='mt-4 max-h-[min(70vh,36rem)] overflow-y-auto space-y-4 px-2 text-left'>
-										{historicoPorData.length === 0 ? (
-											<p className='text-sm text-gray-500'>
-												Nenhum treino encontrado no historico.
-											</p>
-										) : (
-											historicoPorData.map((dia) => (
-												<div key={dia.data} className='pt-3'>
-													<div className='text-sm font-semibold text-quattor-laranja'>
-														{dia.data} ({dia.totalTreinos})
-													</div>
-													<div className='mt-3 space-y-4'>
-														{dia.grupos.map((grupo) => (
-															<div key={`${dia.data}-${grupo.nome}`}>
-																<div className='text-sm  text-quattor-verde '>
-																	{grupo.nome} ({grupo.treinos.length})
-																</div>
+					{/* Treinos do mês */}
+					<section className='rounded-3xl bg-white p-5 shadow-sm ring-1 ring-gray-100'>
+						<div className='mb-4 flex items-center justify-between'>
+							<h2 className='flex items-center gap-2 text-base font-bold text-quattor-azul-escuro'>
+								<HiCalendarDays className='h-5 w-5 text-quattor-azul' />
+								<span>Treinos de {mes}</span>
+							</h2>
+							<Link
+								to={`/historico/${aluno.registration}`}
+								className='inline-flex items-center gap-1 text-xs font-semibold text-quattor-azul hover:underline'>
+								Ver tudo
+								<HiArrowRight className='h-3.5 w-3.5' />
+							</Link>
+						</div>
 
-																<ul className='mt-2 ' role='list'>
-																	{grupo.treinos.map((treino, index) => (
-																		<li
-																			key={`${dia.data}-${grupo.nome}-${treino.nome}-${index}`}
-																			className='rounded-lg p-2'>
-																			<div className='flex flex-wrap items-baseline justify-between '>
-																				<span className='flex items-center gap-2 text-quattor-azul-escuro'>
-																					<HiCheckCircle className='h-4 w-4 text-quattor-azul' />
-																					{treino.nome}
-																				</span>
-																				<span className='text-xs text-gray-500'>
-																					{dia.data}
-																				</span>
-																			</div>
-																		</li>
-																	))}
-																</ul>
-																<hr className='my-2 border-gray-200' />
-															</div>
+						{historicoPorData.length === 0 ? (
+							<div className='flex flex-col items-center py-8 text-center'>
+								<span className='mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-quattor-fundo'>
+									<HiOutlineClipboardDocumentList className='h-7 w-7 text-gray-400' />
+								</span>
+								<p className='font-medium text-quattor-azul-escuro'>Nenhum treino neste mês ainda</p>
+								<p className='mt-1 max-w-xs text-sm text-gray-500'>
+									Toque em “Treinar agora” e marque os exercícios que fizer — eles aparecem aqui.
+								</p>
+							</div>
+						) : (
+							<ol className='space-y-5'>
+								{historicoPorData.map((dia) => (
+									<li key={dia.data}>
+										<div className='mb-2 flex items-baseline justify-between border-b border-gray-100 pb-1'>
+											<span className='text-sm font-semibold capitalize text-quattor-azul-escuro'>
+												{rotuloDia(dia.data)}
+											</span>
+											<span className='text-xs text-gray-400'>
+												{dia.totalTreinos} {dia.totalTreinos === 1 ? "exercício" : "exercícios"}
+											</span>
+										</div>
+										<div className='space-y-3'>
+											{dia.grupos.map((grupo) => (
+												<div key={`${dia.data}-${grupo.nome}`}>
+													<span className='inline-block rounded-full bg-quattor-verde/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-quattor-verde'>
+														{grupo.nome}
+													</span>
+													<ul className='mt-1.5 space-y-1'>
+														{grupo.treinos.map((treino, index) => (
+															<li
+																key={`${dia.data}-${grupo.nome}-${treino.nome}-${index}`}
+																className='flex items-start gap-2 text-sm text-gray-700'>
+																<HiCheckCircle className='mt-0.5 h-4 w-4 shrink-0 text-quattor-azul' />
+																<span className='flex-1'>{treino.nome}</span>
+																{treino.carga && treino.carga !== "-" && (
+																	<span className='shrink-0 rounded-md bg-quattor-fundo px-1.5 py-0.5 text-xs text-gray-500'>
+																		{treino.carga}
+																	</span>
+																)}
+															</li>
 														))}
-													</div>
+													</ul>
 												</div>
-											))
-										)}
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
+											))}
+										</div>
+									</li>
+								))}
+							</ol>
+						)}
+					</section>
 				</div>
-			</div>
+			</main>
 		</>
 	);
 }
