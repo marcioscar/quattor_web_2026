@@ -257,81 +257,85 @@ export default function Aluno({ loaderData }: Route.ComponentProps) {
 		<>
 			<MainNavbar />
 			<main className='min-h-screen bg-quattor-fundo px-4 pb-10 pt-6'>
-				<div className='mx-auto w-full max-w-xl space-y-4'>
-					{/* Cartão do aluno */}
-					<section className='overflow-hidden rounded-3xl bg-quattor-azul-escuro text-white shadow-lg'>
-						<div className='flex items-center gap-4 p-5'>
-							<img
-								src={aluno.photo || AVATAR_GENERICO}
-								alt={aluno.name}
-								className='h-20 w-20 shrink-0 rounded-full object-cover ring-4 ring-white/15 sm:h-24 sm:w-24'
-								onError={(event) => {
-									event.currentTarget.src = AVATAR_GENERICO;
-								}}
-							/>
-							<div className='min-w-0'>
-								<p className='text-sm text-white/60'>Olá,</p>
-								<h1 className='truncate text-2xl font-bold capitalize leading-tight'>
-									{aluno.name.toLowerCase()}
-								</h1>
-								<p className='mt-1 inline-flex items-center gap-1.5 text-xs text-white/60'>
-									<HiIdentification className='h-4 w-4' />
-									Matrícula {aluno.registration}
-								</p>
-							</div>
-						</div>
-
-						{(aluno.plano || aluno.endDate) && (
-							<div className='mx-5 mb-5 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white/10 px-4 py-3'>
+				{/* Celular: uma coluna. Desktop: aluno + números à esquerda, treinos à direita. */}
+				<div className='mx-auto grid w-full max-w-5xl gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start lg:gap-6'>
+					<div className='space-y-4 lg:sticky lg:top-24'>
+						{/* Cartão do aluno */}
+						<section className='overflow-hidden rounded-3xl bg-quattor-azul-escuro text-white shadow-lg'>
+							<div className='flex items-center gap-4 p-5'>
+								<img
+									src={aluno.photo || AVATAR_GENERICO}
+									alt={aluno.name}
+									className='h-20 w-20 shrink-0 rounded-full object-cover ring-4 ring-white/15 sm:h-24 sm:w-24'
+									onError={(event) => {
+										event.currentTarget.src = AVATAR_GENERICO;
+									}}
+								/>
 								<div className='min-w-0'>
-									<p className='text-[11px] uppercase tracking-wider text-white/50'>Plano</p>
-									<p className='truncate text-sm font-semibold capitalize'>
-										{aluno.plano.toLowerCase() || "—"}
+									<p className='text-sm text-white/60'>Olá,</p>
+									<h1 className='truncate text-2xl font-bold capitalize leading-tight'>
+										{aluno.name.toLowerCase()}
+									</h1>
+									<p className='mt-1 inline-flex items-center gap-1.5 text-xs text-white/60'>
+										<HiIdentification className='h-4 w-4' />
+										Matrícula {aluno.registration}
 									</p>
 								</div>
-								{aluno.endDate && (
-									<div className='text-right'>
-										<p className='text-[11px] uppercase tracking-wider text-white/50'>Válido até</p>
-										<p className='text-sm font-semibold'>{aluno.endDate}</p>
-									</div>
-								)}
 							</div>
-						)}
 
-						<Link
-							to={`/treinos/${aluno.registration}`}
-							className='flex items-center justify-center gap-2 bg-quattor-laranja px-5 py-4 text-base font-semibold text-white transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white'>
-							<HiPlay className='h-5 w-5' />
-							Treinar agora
-						</Link>
-					</section>
+							{(aluno.plano || aluno.endDate) && (
+								<div className='mx-5 mb-5 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white/10 px-4 py-3'>
+									<div className='min-w-0'>
+										<p className='text-[11px] uppercase tracking-wider text-white/50'>Plano</p>
+										<p className='truncate text-sm font-semibold capitalize'>
+											{aluno.plano.toLowerCase() || "—"}
+										</p>
+									</div>
+									{aluno.endDate && (
+										<div className='text-right'>
+											<p className='text-[11px] uppercase tracking-wider text-white/50'>Válido até</p>
+											<p className='text-sm font-semibold'>{aluno.endDate}</p>
+										</div>
+									)}
+								</div>
+							)}
 
-					{/* Números do mês */}
-					<section>
-						<h2 className='mb-2 px-1 text-sm font-semibold text-gray-500'>
-							Seu mês de {mes}
-						</h2>
-						<div className='grid grid-cols-3 gap-3'>
-							<Estatistica
-								icone={<HiFire className='h-5 w-5 text-quattor-laranja' />}
-								cor='bg-quattor-laranja/10'
-								valor={diasTreinadosNoMes}
-								rotulo={diasTreinadosNoMes === 1 ? "dia de treino" : "dias de treino"}
-							/>
-							<Estatistica
-								icone={<HiRectangleStack className='h-5 w-5 text-quattor-azul' />}
-								cor='bg-quattor-azul/10'
-								valor={gruposTreinadosNoMes}
-								rotulo={gruposTreinadosNoMes === 1 ? "grupo muscular" : "grupos musculares"}
-							/>
-							<Estatistica
-								icone={<HiCheckCircle className='h-5 w-5 text-quattor-verde' />}
-								cor='bg-quattor-verde/10'
-								valor={exerciciosTreinadosNoMes}
-								rotulo={exerciciosTreinadosNoMes === 1 ? "exercício" : "exercícios"}
-							/>
-						</div>
-					</section>
+							<Link
+								to={`/treinos/${aluno.registration}`}
+								className='flex items-center justify-center gap-2 bg-quattor-laranja px-5 py-4 text-base font-semibold text-white transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white'>
+								<HiPlay className='h-5 w-5' />
+								Treinar agora
+							</Link>
+						</section>
+
+						{/* Números do mês */}
+						<section>
+							<h2 className='mb-2 px-1 text-sm font-semibold text-gray-500'>
+								Seu mês de {mes}
+							</h2>
+							<div className='grid grid-cols-3 gap-3'>
+								<Estatistica
+									icone={<HiFire className='h-5 w-5 text-quattor-laranja' />}
+									cor='bg-quattor-laranja/10'
+									valor={diasTreinadosNoMes}
+									rotulo={diasTreinadosNoMes === 1 ? "dia de treino" : "dias de treino"}
+								/>
+								<Estatistica
+									icone={<HiRectangleStack className='h-5 w-5 text-quattor-azul' />}
+									cor='bg-quattor-azul/10'
+									valor={gruposTreinadosNoMes}
+									rotulo={gruposTreinadosNoMes === 1 ? "grupo muscular" : "grupos musculares"}
+								/>
+								<Estatistica
+									icone={<HiCheckCircle className='h-5 w-5 text-quattor-verde' />}
+									cor='bg-quattor-verde/10'
+									valor={exerciciosTreinadosNoMes}
+									rotulo={exerciciosTreinadosNoMes === 1 ? "exercício" : "exercícios"}
+								/>
+							</div>
+						</section>
+
+					</div>
 
 					{/* Treinos do mês */}
 					<section className='rounded-3xl bg-white p-5 shadow-sm ring-1 ring-gray-100'>
