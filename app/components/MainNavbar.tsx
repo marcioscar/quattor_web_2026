@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Link, useRouteLoaderData } from "react-router";
-import { TbLogout } from "react-icons/tb";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useLocation, useRouteLoaderData } from "react-router";
+import { CalendarDays, Dumbbell, House, LayoutDashboard, LogIn, LogOut, type LucideIcon } from "lucide-react";
 
 const AVATAR_GENERICO =
 	"data:image/svg+xml;utf8," +
@@ -10,106 +10,188 @@ const AVATAR_GENERICO =
 	"<ellipse cx='20' cy='36' rx='12' ry='8' fill='%239ca3af'/>" +
 	"</svg>";
 
+type Usuario = { name: string; photo: string; registration: string };
+type Item = { to: string; rotulo: string; rotuloCurto: string; icone: LucideIcon; end?: boolean };
+
+function primeiroNome(nome: string): string {
+	const p = nome.trim().split(/\s+/)[0] ?? "";
+	return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();
+}
+
+function itensDo(user: Usuario | null): Item[] {
+	const inicio: Item = { to: "/", rotulo: "Início", rotuloCurto: "Início", icone: House, end: true };
+	if (!user) return [inicio];
+	const r = user.registration;
+	return [
+		inicio,
+		{ to: `/aluno/${r}`, rotulo: "Meu painel", rotuloCurto: "Painel", icone: LayoutDashboard },
+		{ to: `/treinos/${r}`, rotulo: "Treinar", rotuloCurto: "Treinar", icone: Dumbbell },
+		{ to: `/historico/${r}`, rotulo: "Histórico", rotuloCurto: "Histórico", icone: CalendarDays },
+	];
+}
+
+function Avatar({ user, tamanho }: { user: Usuario; tamanho: string }) {
+	return (
+		<img
+			src={user.photo || AVATAR_GENERICO}
+			alt=''
+			className={`${tamanho} rounded-full object-cover ring-2 ring-white`}
+			onError={(e) => {
+				e.currentTarget.src = AVATAR_GENERICO;
+			}}
+		/>
+	);
+}
+
+/**
+ * Barra do topo (fixa, translúcida) e, no celular, para o aluno logado, uma
+ * barra de abas embaixo — Início / Painel / Treinar / Histórico ao alcance
+ * do polegar no meio do treino.
+ */
 export default function MainNavbar() {
-	const [menuAberto, setMenuAberto] = useState(false);
-	const data = useRouteLoaderData("root") as
-		| { user: { name: string; photo: string; registration: string } | null }
-		| undefined;
+	const data = useRouteLoaderData("root") as { user: Usuario | null } | undefined;
 	const user = data?.user ?? null;
+	const itens = itensDo(user);
+	const location = useLocation();
+	const [menuAberto, setMenuAberto] = useState(false);
+	const menuRef = useRef<HTMLDivElement>(null);
+
+	// Fecha o menu do avatar ao navegar, ao tocar fora dele e com Esc.
+	useEffect(() => setMenuAberto(false), [location.pathname]);
+	useEffect(() => {
+		if (!menuAberto) return;
+		const fechar = (e: PointerEvent) => {
+			if (!menuRef.current?.contains(e.target as Node)) setMenuAberto(false);
+		};
+		const fecharComEsc = (e: KeyboardEvent) => e.key === "Escape" && setMenuAberto(false);
+		document.addEventListener("pointerdown", fechar);
+		document.addEventListener("keydown", fecharComEsc);
+		return () => {
+			document.removeEventListener("pointerdown", fechar);
+			document.removeEventListener("keydown", fecharComEsc);
+		};
+	}, [menuAberto]);
+
+	// A barra de abas fica por cima do fim da página: reserva o espaço dela.
+	useEffect(() => {
+		if (!user) return;
+		document.body.classList.add("com-abas");
+		return () => document.body.classList.remove("com-abas");
+	}, [user]);
 
 	return (
 		<>
-			<nav className='fixed top-0 mt-1.5 left-0 right-0 z-30 bg-white w-full px-4 md:px-6 lg:px-8 backdrop-blur'>
-				<div className='w-full'>
-					<div className='flex flex-wrap items-center justify-between py-2'>
-						<Link to='/' className='flex items-center gap-2'>
-							<img
-								src='/logos_quattor.svg'
-								alt='Quattor Academia'
-								className='h-8 w-auto'
-							/>
-						</Link>
-						<div className='flex md:hidden md:order-2'>
-							<button
-								data-collapse-toggle='mobile-menu-3'
-								type='button'
-								className='md:hidden text-gray-400 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-lg inline-flex items-center justify-center'
-								aria-controls='mobile-menu-3'
-								aria-expanded={menuAberto}
-								onClick={() => setMenuAberto((aberto) => !aberto)}>
-								<span className='sr-only'>Open main menu</span>
-								<svg
-									className={`w-6 h-6 ${menuAberto ? "hidden" : ""}`}
-									fill='currentColor'
-									viewBox='0 0 20 20'
-									xmlns='http://www.w3.org/2000/svg'>
-									<path
-										fillRule='evenodd'
-										d='M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z'
-										clipRule='evenodd'></path>
-								</svg>
-								<svg
-									className={`w-6 h-6 ${menuAberto ? "" : "hidden"}`}
-									fill='currentColor'
-									viewBox='0 0 20 20'
-									xmlns='http://www.w3.org/2000/svg'>
-									<path
-										fillRule='evenodd'
-										d='M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z'
-										clipRule='evenodd'></path>
-								</svg>
-							</button>
-						</div>
-						<div
-							className={`${menuAberto ? "flex" : "hidden"} md:flex justify-between items-end w-full md:w-auto md:order-1`}
-							id='mobile-menu-3'>
-							<ul className='flex-col md:flex-row flex md:space-x-8 mt-4 md:mt-0 md:text-sm md:font-medium items-center'>
-								<li>
-									<Link
-										to='/'
-										className='bg-blue-700 md:bg-transparent text-white block pl-3 pr-4 py-2 md:text-blue-700 md:p-0 rounded'
-										aria-current='page'>
-										Home
-									</Link>
-								</li>
-								<li>
-									<Link
-										to='/login'
-										className='text-gray-700 hover:bg-gray-50 border-b border-gray-100 md:hover:bg-transparent md:border-0 block pl-3 pr-4 py-2 md:hover:text-blue-700 md:p-0'>
-										Aluno
-									</Link>
-								</li>
+			<header className='sticky top-0 z-40 border-b border-gray-100 bg-white/85 backdrop-blur-md'>
+				<div className='mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4'>
+					<Link to='/' className='shrink-0' aria-label='Quattor Academia — início'>
+						<img src='/logos_quattor.svg' alt='Quattor Academia' className='h-8 w-auto' />
+					</Link>
 
-								{user && (
-									<li className='flex items-center gap-2 pl-3 pr-4 py-2 md:pl-0 md:pr-0 md:py-0 ml-auto'>
-										<Link
-											to={`/aluno/${user.registration}`}
-											className='flex items-center gap-2 hover:opacity-80'>
-											<img
-												src={user.photo || AVATAR_GENERICO}
-												alt={user.name}
-												className='w-8 h-8 rounded-full object-cover'
-												onError={(e) => {
-													e.currentTarget.src = AVATAR_GENERICO;
-												}}
-											/>
-											<span className='text-gray-700 md:hover:text-blue-700 hidden sm:inline max-w-[120px] truncate'>
-												{user.name}
-											</span>
-										</Link>
-										<Link
-											to='/logout'
-											className='px-3 py-1.5 rounded-lg text-sm  font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-700'>
-											<TbLogout className='w-5 h-5 mr-2' />
-										</Link>
-									</li>
-								)}
-							</ul>
+					{/* Links — só no desktop; no celular quem navega é a barra de abas */}
+					<nav aria-label='Principal' className='hidden md:block'>
+						<ul className='flex items-center gap-1'>
+							{itens.map((item) => (
+								<li key={item.to}>
+									<NavLink
+										to={item.to}
+										end={item.end}
+										className={({ isActive }) =>
+											`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition ${
+												isActive
+													? "bg-quattor-azul-escuro text-white"
+													: "text-gray-600 hover:bg-quattor-fundo hover:text-quattor-azul-escuro"
+											}`
+										}>
+										<item.icone className='h-4 w-4' />
+										{item.rotulo}
+									</NavLink>
+								</li>
+							))}
+						</ul>
+					</nav>
+
+					{user ? (
+						<div ref={menuRef} className='relative'>
+							<button
+								type='button'
+								onClick={() => setMenuAberto((a) => !a)}
+								aria-expanded={menuAberto}
+								aria-haspopup='menu'
+								className='flex items-center gap-2 rounded-full py-1 pl-1 pr-1 transition hover:bg-quattor-fundo md:pr-3'>
+								<Avatar user={user} tamanho='h-9 w-9' />
+								<span className='hidden text-sm font-semibold text-quattor-azul-escuro md:inline'>
+									{primeiroNome(user.name)}
+								</span>
+							</button>
+							{menuAberto && (
+								<div
+									role='menu'
+									className='absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-2xl bg-white p-2 shadow-xl ring-1 ring-gray-100'>
+									<div className='flex items-center gap-3 px-2 py-2'>
+										<Avatar user={user} tamanho='h-10 w-10' />
+										<div className='min-w-0'>
+											<p className='truncate text-sm font-semibold text-quattor-azul-escuro'>
+												{primeiroNome(user.name)}
+											</p>
+											<p className='text-xs text-gray-500'>Matrícula {user.registration}</p>
+										</div>
+									</div>
+									<div className='my-1 h-px bg-gray-100' />
+									<Link
+										to='/logout'
+										role='menuitem'
+										className='flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-medium text-quattor-vermelho hover:bg-quattor-vermelho/5'>
+										<LogOut className='h-4 w-4' />
+										Sair
+									</Link>
+								</div>
+							)}
 						</div>
-					</div>
+					) : (
+						<Link
+							to='/login'
+							className='inline-flex items-center gap-2 rounded-xl bg-quattor-laranja px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-105'>
+							<LogIn className='h-4 w-4' />
+							<span className='hidden sm:inline'>Área do aluno</span>
+							<span className='sm:hidden'>Entrar</span>
+						</Link>
+					)}
 				</div>
-			</nav>
-			<div className='h-(--navbar-spacer-height)' />
+			</header>
+
+			{/* Barra de abas — celular, aluno logado */}
+			{user && (
+				<nav
+					aria-label='Navegação do aluno'
+					className='fixed inset-x-0 bottom-0 z-40 border-t border-gray-100 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden'>
+					<ul className='grid grid-cols-4'>
+						{itens.map((item) => (
+							<li key={item.to}>
+								<NavLink
+									to={item.to}
+									end={item.end}
+									className={({ isActive }) =>
+										`flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition ${
+											isActive ? "text-quattor-azul-escuro" : "text-gray-400"
+										}`
+									}>
+									{({ isActive }) => (
+										<>
+											<span
+												className={`flex h-8 w-12 items-center justify-center rounded-full transition ${
+													isActive ? "bg-quattor-laranja/15" : ""
+												}`}>
+												<item.icone className={`h-5 w-5 ${isActive ? "text-quattor-laranja" : ""}`} />
+											</span>
+											{item.rotuloCurto}
+										</>
+									)}
+								</NavLink>
+							</li>
+						))}
+					</ul>
+				</nav>
+			)}
 		</>
 	);
 }

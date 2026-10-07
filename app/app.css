@@ -159,3 +159,10 @@ body {
     @apply font-sans;
   }
 }
+/* Barra de abas do aluno (MainNavbar) fica fixa embaixo no celular:
+   reserva a altura dela para o fim da página não ficar escondido. */
+@media (max-width: 767px) {
+  body.com-abas {
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom));
+  }
+}
