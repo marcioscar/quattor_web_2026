@@ -1,0 +1,133 @@
+// ⚠️ BANCO COMPARTILHADO (recepção, catraca-api e outros) — este schema é
+// PARCIAL e serve só para gerar o client (`prisma generate`).
+//
+// NUNCA rode `prisma db push`, `prisma migrate` nem `prisma db pull` daqui:
+// um db push a partir deste schema apaga os índices e validações que os
+// outros sistemas criaram. Não declare @unique/@@index aqui pelo mesmo
+// motivo — o banco já tem os dele (ver o schema do recepção).
+//
+// Campos: só os que este projeto lê ou grava, e quase todos opcionais —
+// campo obrigatório ausente num documento faz o Prisma estourar na LEITURA.
+//
+// O que este projeto pode GRAVAR:
+//   - Aluno: só `senhaHash` e `senhaDefinidaEm` (updateMany com esses dois).
+//   - WebAlunoCodigoAcesso: coleção própria deste projeto.
+//   - historicoExercicios: $push em `histexe` (ver treinos.server.ts).
+
+generator client {
+    provider      = "prisma-client-js"
+    // linux-musl: imagem node:20-alpine do Dockerfile.
+    binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+    provider = "mongodb"
+    url      = env("DATABASE_URL")
+}
+
+/// Cadastro do recepção. Modelo completo em
+/// recepcao/packages/database/prisma/schema.prisma.
+model Aluno {
+    id              String    @id @default(auto()) @map("_id") @db.ObjectId
+    nome            String?
+    sobrenome       String?
+    email           String?
+    fotoUrl         String?
+    /// Número de membro — é a `registration` da sessão e o `aluno` do histórico.
+    idMembro        Int?
+    wellhubId       String?
+    senhaHash       String?
+    senhaDefinidaEm DateTime?
+}
+
+model PlanoContratado {
+    id              String    @id @default(auto()) @map("_id") @db.ObjectId
+    alunoId         String    @db.ObjectId
+    nomePlano       String?
+    status          String?
+    vencimento      DateTime?
+    dataContratacao DateTime?
+}
+
+model WellhubCheckin {
+    id         String    @id @default(auto()) @map("_id") @db.ObjectId
+    gympassId  String?
+    recebidoEm DateTime?
+}
+
+/// Código de primeiro acesso / esqueci a senha — coleção DESTE projeto.
+/// Só guarda o hash do código (mesmo scrypt da senha).
+model WebAlunoCodigoAcesso {
+    id         String    @id @default(auto()) @map("_id") @db.ObjectId
+    /// e-mail normalizado (minúsculo, sem espaços nas pontas)
+    email      String
+    codigoHash String
+    expiraEm   DateTime
+    tentativas Int       @default(0)
+    usadoEm    DateTime?
+    criadoEm   DateTime  @default(now())
+}
+
+// ── Grade de aulas (só leitura) — mesmo motor do recepção, ver app/aulas/ ──
+
+model Turma {
+    id              String   @id @default(auto()) @map("_id") @db.ObjectId
+    nome            String?
+    diaSemana       Int? // 0=domingo ... 6=sábado
+    horaInicio      String? // "HH:MM"
+    horaFim         String?
+    professor       String?
+    capacidade      Int?
+    ativo           Boolean?
+    centroReceitaId String?  @db.ObjectId
+    vigenciaInicio  String? // "YYYY-MM-DD"
+    vigenciaFim     String?
+    /// idActivity da EVO — usado para a cor da bolinha na home
+    evoIdActivity   Int?
+}
+
+/// Sessão gravada de um dia (cancelada, substituição, chamada feita).
+model AulaSessao {
+    id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+    turmaId            String    @db.ObjectId
+    dia                String // "YYYY-MM-DD" em Brasília
+    data               DateTime? // meia-noite de Brasília
+    horaInicio         String?
+    horaFim            String?
+    professorNome      String?
+    capacidade         Int?
+    status             String? // realizada | cancelada
+}
+
+model Feriado {
+    id               String   @id @default(auto()) @map("_id") @db.ObjectId
+    dia              String // "YYYY-MM-DD"
+    nome             String?
+    tipo             String?
+    atingeTodas      Boolean?
+    centroReceitaIds String[] @db.ObjectId
+    cancelaAPartirDe String?
+}
+
+model TurmaMatricula {
+    id      String    @id @default(auto()) @map("_id") @db.ObjectId
+    turmaId String    @db.ObjectId
+    status  String?
+    inicio  DateTime?
+    fim     DateTime?
+}
+
+/// Treino da semana por grupo muscular. `semana` = semana ISO do ano.
+model Treino {
+    id         String @id @default(auto()) @map("_id") @db.ObjectId
+    grupo      String?
+    semana     Int?
+    /// [{ nome, Repeticoes, obs, video, carga }]
+    exercicios Json?
+
+    @@map("treinos")
+}
+
+// historicoExercicios NÃO tem model: `aluno` está gravado ora como int, ora
+// como long, ora como texto, e `histexe[].data` mistura data e texto — é lido
+// e gravado com $runCommandRaw (ver app/models/treinos.server.ts).

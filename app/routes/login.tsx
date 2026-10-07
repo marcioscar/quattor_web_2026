@@ -1,45 +1,10 @@
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { redirect, useFetcher } from "react-router";
-import { createSessionCookie, getSessionRegistration } from "../session.server";
-import { useState } from "react";
+import { Link, redirect, useFetcher } from "react-router";
+import { getSessionRegistration } from "../session.server";
 import MainNavbar from "../components/MainNavbar";
+import { autenticar, concluirLogin, type FalhaLogin } from "~/auth/login.server";
+import { normalizarEmail } from "~/auth/regras";
 import type { Route } from "./+types/login";
 
-const API_BASE_URL_AUTENTICACAO = "https://api.quattoracademia.com/autenticar/";
-
-type AlunoResponse = {
-	status?: string;
-	registration?: number;
-	[name: string]: unknown;
-};
-
-type ActionResult =
-	| { ok: true; aluno: AlunoResponse }
-	| { ok: false; error: "INACTIVE"; errorMessage?: string }
-	| { ok: false; error: "NOT_FOUND" };
-
-function normalizeSenhaEmail(value: string): string {
-	return value.trim();
-}
-
-function isStatusActive(status: string): boolean {
-	const s = status.toLowerCase().trim();
-	return s === "ativo" || s === "active" || s === "activo";
-}
-
-function buildApiUrlAutenticacao(email: string, senha: string): string {
-	return `${API_BASE_URL_AUTENTICACAO}?email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}`;
-}
-async function fetchAutenticacao(email: string, senha: string) {
-	const url = buildApiUrlAutenticacao(email, senha);
-	const response = await fetch(url, { method: "POST" });
-	const data = await response.json();
-
-	if (!response.ok) {
-		throw { type: "ERROR", message: data.message || "Erro ao autenticar" };
-	}
-	return data as AuthenticatorResponse;
-}
 export async function loader({ request }: Route.LoaderArgs) {
 	const registration = getSessionRegistration(request);
 	if (registration) {
@@ -48,75 +13,34 @@ export async function loader({ request }: Route.LoaderArgs) {
 	return null;
 }
 
-export async function action({
-	request,
-}: Route.ActionArgs): Promise<ActionResult> {
+/**
+ * E-mail e senha chegam no CORPO do POST e são conferidos direto no banco
+ * (Aluno.senhaHash). A senha não é aparada nem vai para log.
+ */
+export async function action({ request }: Route.ActionArgs): Promise<FalhaLogin> {
 	const formData = await request.formData();
-	const email = normalizeSenhaEmail(formData.get("email") as string);
-	const senha = normalizeSenhaEmail(formData.get("senha") as string);
+	const email = normalizarEmail(String(formData.get("email") ?? ""));
+	const senha = String(formData.get("senha") ?? "");
+	if (!email || !senha) return { ok: false, error: "NOT_FOUND" };
 
-	try {
-		const data = await fetchAutenticacao(email, senha);
+	const alunos = await autenticar(email, senha);
+	if (!alunos) return { ok: false, error: "NOT_FOUND" };
 
-		if (
-			"status" in data &&
-			typeof data.status === "string" &&
-			!isStatusActive(data.status)
-		) {
-			return {
-				ok: false,
-				error: "INACTIVE",
-				errorMessage: "Sua matrícula está inativa.",
-			};
-		}
-
-		if ("status" in data) {
-			const alunoData = data as unknown as AlunoResponse;
-			const matriculaDoAluno = String(alunoData.registration ?? "");
-
-			if (matriculaDoAluno) {
-				throw redirect(`/aluno/${matriculaDoAluno}`, {
-					headers: {
-						"Set-Cookie": createSessionCookie(matriculaDoAluno),
-					},
-				});
-			}
-
-			return { ok: true, aluno: alunoData };
-		}
-
-		return { ok: false, error: "NOT_FOUND" };
-	} catch (err) {
-		if (err instanceof Response && err.status >= 300 && err.status < 400) {
-			throw err;
-		}
-		const errObj = err as { type?: string; message?: string } | null;
-		if (errObj && errObj.type === "INACTIVE") {
-			return {
-				ok: false,
-				error: "INACTIVE",
-				errorMessage: errObj.message ?? undefined,
-			};
-		}
-		return { ok: false, error: "NOT_FOUND" };
-	}
+	const resultado = await concluirLogin(alunos);
+	if (resultado instanceof Response) throw resultado;
+	return resultado;
 }
-
-const URL_TROCA_SENHA =
-	"https://evo-totem.w12app.com.br/quattor/1/page/landing-page/validacao";
 
 export default function Login() {
 	const fetcher = useFetcher<typeof action>();
 	const isSubmitting = fetcher.state === "submitting";
 	const result = fetcher.data;
-	const [modalTrocaSenhaAberto, setModalTrocaSenhaAberto] = useState(false);
-	const [emailTrocaSenha, setEmailTrocaSenha] = useState("");
 
 	const errorMessage =
 		result && !result.ok && result.error === "INACTIVE"
-			? (result.errorMessage ?? "Sua matrícula está inativa.")
+			? "Sua matrícula está inativa. Procure a recepção."
 			: result && !result.ok && result.error === "NOT_FOUND"
-				? "E-mail ou senha incorretos."
+				? "E-mail ou senha incorretos. Se é seu primeiro acesso, crie sua senha abaixo."
 				: null;
 
 	return (
@@ -138,8 +62,7 @@ export default function Login() {
 						)}
 
 						<fetcher.Form method='post' className='space-y-5'>
-							<input type='hidden' name='intent' value='login' />
-							<div>
+														<div>
 								<label
 									htmlFor='email'
 									className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5'>
@@ -183,57 +106,13 @@ export default function Login() {
 						</fetcher.Form>
 
 						<p className='mt-6 text-center text-sm text-gray-600 dark:text-gray-400'>
-							mudar a senha?{" "}
-							<button
-								type='button'
-								onClick={() => setModalTrocaSenhaAberto(true)}
+							Primeiro acesso ou esqueceu a senha?{" "}
+							<Link
+								to='/primeiro-acesso'
 								className='text-orange-500 hover:text-orange-600 font-medium'>
-								clique aqui
-							</button>
+								Criar senha
+							</Link>
 						</p>
-
-						<Dialog
-							open={modalTrocaSenhaAberto}
-							onClose={() => setModalTrocaSenhaAberto(false)}
-							className='relative z-50'>
-							<div className='fixed inset-0 bg-black/30' aria-hidden='true' />
-							<div className='fixed inset-0 flex items-center justify-center p-4'>
-								<DialogPanel className='mx-auto max-w-sm rounded-xl bg-white dark:bg-gray-900 p-6 shadow-xl border border-gray-200 dark:border-gray-800'>
-									<DialogTitle className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>
-										Trocar senha
-									</DialogTitle>
-									<p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
-										Digite seu e-mail para trocar a senha:
-									</p>
-									<input
-										type='email'
-										value={emailTrocaSenha}
-										onChange={(e) => setEmailTrocaSenha(e.target.value)}
-										placeholder='seu@email.com'
-										className='w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4'
-									/>
-									<div className='flex gap-2 justify-end'>
-										<button
-											type='button'
-											onClick={() => setModalTrocaSenhaAberto(false)}
-											className='px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'>
-											Cancelar
-										</button>
-										<button
-											type='button'
-											onClick={() => {
-												const url = `${URL_TROCA_SENHA}?email=${encodeURIComponent(emailTrocaSenha)}&login=False`;
-												window.open(url, "_blank", "noopener,noreferrer");
-												setModalTrocaSenhaAberto(false);
-												setEmailTrocaSenha("");
-											}}
-											className='px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white'>
-											Continuar
-										</button>
-									</div>
-								</DialogPanel>
-							</div>
-						</Dialog>
 					</div>
 				</div>
 			</div>

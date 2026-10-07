@@ -9,25 +9,21 @@ import {
 
 import type { Route } from "./+types/root";
 import { getSessionRegistration } from "./session.server";
+import { buscarAluno } from "./models/treinos.server";
 import "./app.css";
-
-type AlunoResumo = { name: string; photo: string; registration: number };
 
 export async function loader({ request }: Route.LoaderArgs) {
   const registration = getSessionRegistration(request);
   if (!registration) return { user: null };
 
   try {
-    const res = await fetch(
-      `https://api.quattoracademia.com/alunos/?matricula=${registration}`,
-    );
-    if (!res.ok) return { user: null };
-    const aluno = (await res.json()) as AlunoResumo;
+    const aluno = await buscarAluno(Number(registration));
+    if (!aluno) return { user: null };
     return {
       user: {
-        name: aluno.name ?? "",
-        photo: aluno.photo ?? "",
-        registration: String(aluno.registration ?? registration),
+        name: aluno.name,
+        photo: aluno.photo,
+        registration: String(aluno.registration),
       },
     };
   } catch {

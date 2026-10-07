@@ -1,4 +1,3 @@
-import { buildUrlMidiaExercicio } from "~/models/api_access";
 import { resolverUrlVideoLocal } from "~/utils/exercicioVideoAssets";
 
 export type DetalhesExercicio = {
@@ -8,6 +7,20 @@ export type DetalhesExercicio = {
 	videoUrl?: string;
 	notas?: string;
 };
+
+/**
+ * Onde ficam os GIFs que não estão em `app/assets/` — arquivos estáticos
+ * servidos no mesmo domínio da antiga API (não é chamada de dados).
+ */
+const MIDIA_EXERCICIOS_BASE_URL = "https://api.quattoracademia.com/";
+
+/** URL absoluta para mídia gravada como arquivo relativo (ex.: `producao.gif`). */
+function buildUrlMidiaExercicio(referencia: string): string {
+	const t = referencia.trim();
+	if (!t) return "";
+	if (/^https?:\/\//i.test(t)) return t;
+	return new URL(t.replace(/^\/+/, ""), MIDIA_EXERCICIOS_BASE_URL).href;
+}
 
 /** GIF placeholder “vídeo em produção” — não exibir na UI. */
 function ehPlaceholderProducao(referencia: string): boolean {

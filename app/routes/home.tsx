@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useLoaderData } from "react-router";
 import MainNavbar from "../components/MainNavbar";
 import type { Route } from "./+types/home";
+import { aulasDoDia, hojeBrasilia, type Aula } from "../aulas/agenda.server";
 import { FaWhatsapp, FaInstagram, FaCalendarCheck } from "react-icons/fa";
 import { HiEnvelope, HiMiniUserPlus } from "react-icons/hi2";
 import { RiCalendarScheduleFill } from "react-icons/ri";
@@ -12,16 +13,6 @@ export function meta({}: Route.MetaArgs) {
 		{ name: "description", content: "bem vindo ao quattor academia" },
 	];
 }
-type Aula = {
-	activityDate: string;
-	capacity: number;
-	endTime: string;
-	idActivity: number;
-	instructor: string;
-	name: string;
-	startTime: string;
-	ocupation: number;
-};
 
 /** Mapeia idActivity para cor da bolinha (Tailwind) */
 const CORES_AULAS: Record<number, string> = {
@@ -148,53 +139,13 @@ function filtrarAulasProximas(aulas: Aula[]): Aula[] {
 	});
 }
 
-function apenasCamposAula(item: Record<string, unknown>): Aula {
-	const idActivity =
-		Number(item.idActivity ?? item.id_activity ?? item.id_aula ?? 0) || 0;
-	return {
-		activityDate: String(item.activityDate ?? ""),
-		capacity: Number(item.capacity ?? 0),
-		endTime: String(item.endTime ?? ""),
-		idActivity,
-		instructor: String(item.instructor ?? ""),
-		name: String(item.name ?? ""),
-		startTime: String(item.startTime ?? ""),
-		ocupation: Number(item.ocupation ?? 0),
-	};
-}
-
-function dataHojeISO(): string {
-	const d = new Date();
-	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
+/** Aulas de hoje (dia de Brasília), direto da grade do banco. */
 export async function loader() {
-	const aulas = await getAulas(dataHojeISO());
-	return aulas as Aula[];
-}
-
-async function getAulas(dataMes: string) {
-	const response = await fetch(
-		//`https://api.quattoracademia.com/aulas_data_mes/?id_aula=${idAula}&data_mes=${dataMes}`,
-
-		`https://api.quattoracademia.com/aulas_by_date/?data=${dataMes}`,
-	);
-	const data = (await response.json()) as unknown;
-	const raw = Array.isArray(data) ? data : [];
-
-	return raw
-		.filter(
-			(item): item is Record<string, unknown> =>
-				item != null && typeof item === "object",
-		)
-		.map(apenasCamposAula)
-		.filter(
-			(aula) => aula.idActivity !== 19 && aula.idActivity !== 39,
-		) as Aula[];
+	return aulasDoDia(hojeBrasilia());
 }
 
 export default function Home() {
-	const aulas = useLoaderData<typeof loader>() as Aula[];
+	const aulas: Aula[] = useLoaderData<typeof loader>();
 	const aulasPorData = agruparAulasPorData(aulas);
 	const aulasPorDataProximas = agruparAulasPorData(filtrarAulasProximas(aulas));
 	const [filtroAulaHoje, setFiltroAulaHoje] = useState<string>("todas");
@@ -393,8 +344,8 @@ export default function Home() {
 																					<span className='text-xs font-medium text-gray-800 dark:text-white'>
 																						{aula.name}
 																					</span>
-																					{aula.capacity - aula.ocupation >
-																					0 ? (
+																					{aula.capacity == null ||
+																					aula.capacity - aula.ocupation > 0 ? (
 																						<span className='inline-flex items-center justify-center shrink-0 min-w-8 h-6 px-1.5 rounded-full  text-quattor-verde dark:bg-quattor-verde/25 text-xs font-medium gap-1'>
 																							<HiMiniUserPlus
 																								className='w-3 h-3 shrink-0'

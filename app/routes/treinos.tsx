@@ -9,7 +9,7 @@ import {
 	GRUPOS_MUSCULARES,
 	type GrupoMuscular,
 } from "../constants/gruposMusculares";
-import { bd } from "../models/api_access";
+import { buscarExercicios, buscarHistorico, registrarTreino } from "../models/treinos.server";
 import { getSessionRegistration } from "../session.server";
 import {
 	normalizarHistoricoTreinos,
@@ -49,13 +49,13 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	let erroExercicios: string | null = null;
 	let historicoTreinos: TreinoHistorico[] = [];
 	try {
-		const raw = await bd.fetchExercicios(semana, grupo);
+		const raw = await buscarExercicios(semana, grupo);
 		exercicios = normalizarListaExercicios(raw);
 	} catch (error) {
 		erroExercicios = extrairMensagemErro(error);
 	}
 	try {
-		const rawHistorico = await bd.fetchHistorico(String(registration));
+		const rawHistorico = await buscarHistorico(registration);
 		historicoTreinos = normalizarHistoricoTreinos(rawHistorico);
 	} catch {
 		historicoTreinos = [];
@@ -112,7 +112,7 @@ export async function action({ params, request }: Route.ActionArgs) {
 	}
 
 	try {
-		await bd.fetchRegistrarTreino(String(registration), grupo, nome, carga);
+		await registrarTreino(registration, grupo, nome, carga);
 		return Response.json({ ok: true });
 	} catch (error) {
 		const message =

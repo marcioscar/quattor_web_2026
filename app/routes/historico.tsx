@@ -1,13 +1,21 @@
 import type { Route } from "./+types/historico";
+import { redirect } from "react-router";
 import MainNavbar from "../components/MainNavbar";
-import { bd } from "../models/api_access";
+import { buscarHistorico } from "../models/treinos.server";
+import { getSessionRegistration } from "../session.server";
 import {
 	normalizarHistoricoTreinos,
 	type TreinoHistorico,
 } from "../utils/historicoExercicio";
 
-export async function loader({ params }: Route.LoaderArgs) {
-	const raw = await bd.fetchHistorico(String(params.registration));
+export async function loader({ params, request }: Route.LoaderArgs) {
+	const sessionRegistration = getSessionRegistration(request);
+	if (!sessionRegistration || sessionRegistration !== params.registration) {
+		const url = new URL(request.url);
+		throw redirect(`/login?redirect=${encodeURIComponent(url.pathname)}`);
+	}
+
+	const raw = await buscarHistorico(Number(params.registration));
 	return {
 		treinos: normalizarHistoricoTreinos(raw),
 		matricula: params.registration,

@@ -133,7 +133,7 @@ function TimerDescansoPainel({
 			<div className='flex shrink-0 gap-1.5'>
 				<Button
 					type='button'
-					variant='secondary'
+					variant='outline'
 					size='sm'
 					className='h-8 px-2 text-xs sm:h-9 sm:px-3 sm:text-sm'
 					onClick={onAdicionarTempo}>

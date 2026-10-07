@@ -5,6 +5,8 @@ WORKDIR /app
 
 # Copiar arquivos de dependências
 COPY package.json package-lock.json* ./
+# Schema antes do npm ci: o postinstall roda `prisma generate`
+COPY prisma ./prisma
 
 # Instalar dependências (incluindo devDependencies para o build)
 RUN npm ci
@@ -26,6 +28,8 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Copiar arquivos de dependências
 COPY package.json package-lock.json* ./
+# Schema antes do npm ci: o postinstall roda `prisma generate`
+COPY prisma ./prisma
 
 # Instalar apenas dependências de produção
 RUN npm ci --omit=dev && npm cache clean --force
@@ -36,7 +40,7 @@ COPY --from=builder /app/build ./build
 # Alterar ownership dos arquivos
 RUN chown -R nodejs:nodejs /app
 
-USER nodejsdocker push marcioscar/web-quattor:latest
+USER nodejs
 
 # Porta padrão do react-router-serve
 EXPOSE 3000
@@ -45,4 +49,4 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
 
-CMD ["npm", "start"]
+CMD ["npx", "react-router-serve", "./build/server/index.js"]

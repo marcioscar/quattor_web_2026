@@ -10,7 +10,7 @@ import {
 import { GiMuscleUp } from "react-icons/gi";
 import { Link, redirect } from "react-router";
 import MainNavbar from "../components/MainNavbar";
-import { bd } from "../models/api_access";
+import { buscarAluno, buscarHistorico } from "../models/treinos.server";
 import { getSessionRegistration } from "../session.server";
 import {
 	normalizarHistoricoTreinos,
@@ -182,21 +182,14 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	return { historico, aluno };
 }
 
-/**
- * O `api_access` envia `limite` alto na URL do histórico; sem isso a API costuma devolver
- * só os últimos 7 registros. Aqui o mês atual é filtrado no cliente (`filtrarTreinosMesAtual`).
- */
-export async function historicoLoader(registration: number) {
-	const raw = await bd.fetchHistorico(String(registration));
+/** Histórico completo; o mês atual é filtrado na tela (`filtrarTreinosMesAtual`). */
+async function historicoLoader(registration: number) {
+	const raw = await buscarHistorico(registration);
 	return normalizarHistoricoTreinos(raw);
 }
 
-export async function alunoLoader(registration: number) {
-	const response = await fetch(
-		`https://api.quattoracademia.com/alunos/?matricula=${registration}`,
-	);
-	const data = (await response.json()) as aluno;
-	return data;
+async function alunoLoader(registration: number): Promise<aluno | null> {
+	return buscarAluno(registration);
 }
 
 export default function Aluno({ loaderData }: Route.ComponentProps) {
