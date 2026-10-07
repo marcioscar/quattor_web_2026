@@ -12,6 +12,7 @@ import { buscarExercicios, buscarHistorico, registrarTreino } from "../models/tr
 import { getSessionRegistration } from "../session.server";
 import {
 	normalizarHistoricoTreinos,
+	parseDataHistorico,
 	type TreinoHistorico,
 } from "../utils/historicoExercicio";
 import { semanaDoAnoAtualParaApi } from "../utils/semanaDoAno";
@@ -158,6 +159,19 @@ function extrairMensagemErro(error: unknown): string {
 	return "Erro ao buscar exercícios";
 }
 
+/** Grupos com exercício registrado desde a segunda-feira desta semana. */
+function gruposTreinadosNaSemana(historico: TreinoHistorico[]): string[] {
+	const segunda = new Date();
+	segunda.setHours(0, 0, 0, 0);
+	segunda.setDate(segunda.getDate() - ((segunda.getDay() + 6) % 7));
+	const grupos = new Set<string>();
+	for (const t of historico) {
+		const d = parseDataHistorico(t.data);
+		if (d && d >= segunda && t.grupo?.trim()) grupos.add(t.grupo.trim());
+	}
+	return [...grupos];
+}
+
 export default function Treinos({ loaderData }: Route.ComponentProps) {
 	const { registration, semana, grupo, exercicios, historicoTreinos, erroExercicios } =
 		loaderData as TreinosLoaderData;
@@ -182,9 +196,14 @@ export default function Treinos({ loaderData }: Route.ComponentProps) {
 						<p className='mt-1 text-sm text-white/60'>
 							Toque num exercício para ver o vídeo, marcar as séries e registrar.
 						</p>
+						<div className='mt-4'>
+							<TreinosGrupoForm
+								registration={registration}
+								grupoInicial={grupo}
+								gruposDaSemana={gruposTreinadosNaSemana(historicoTreinos)}
+							/>
+						</div>
 					</section>
-
-					<TreinosGrupoForm registration={registration} grupoInicial={grupo} />
 
 					{erroExercicios ? (
 						<Alert variant='destructive'>

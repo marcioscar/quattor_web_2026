@@ -33,8 +33,16 @@ function removerSeriesRepeticoes(valor: string): string {
 	return valor.replace(/\s+\d+\s*[x×]\s*\d+.*$/i, "").trim();
 }
 
+/**
+ * Nome comparável: sem acento, minúsculo, sem o sufixo "3x10" — em cada parte
+ * de um composto, senão "A 4X10 + B 4X10" viraria só "a".
+ */
 export function chaveExercicio(nomeExercicio: string): string {
-	return normalizarTexto(removerSeriesRepeticoes(nomeExercicio));
+	return nomeExercicio
+		.split("+")
+		.map((parte) => normalizarTexto(removerSeriesRepeticoes(parte)))
+		.filter(Boolean)
+		.join(" + ");
 }
 
 function partesNomeComposto(nome: string): string[] {
@@ -45,23 +53,13 @@ function partesNomeComposto(nome: string): string[] {
 }
 
 /**
- * Verifica se o nome do exercício na lista corresponde a uma parte vinda do histórico
- * (evita "gl" bater em "gluteo" por includes solto; exige igualdade ou prefixo com espaço).
+ * Mesmo exercício = mesmo nome (sem acento, caixa e sufixo "3x10"). Prefixo
+ * NÃO basta: antes "Rosca Direta" batia com "Rosca Direta Polia Baixa Corda",
+ * e registrar um marcava o outro como feito.
  */
-export function nomesExercicioCompativeis(
-	nomeLista: string,
-	parteHistorico: string,
-): boolean {
+export function nomesExercicioCompativeis(nomeLista: string, nomeHistorico: string): boolean {
 	const a = chaveExercicio(nomeLista);
-	const b = chaveExercicio(parteHistorico);
-	if (!a || !b) return false;
-	if (a === b) return true;
-
-	const menor = a.length <= b.length ? a : b;
-	const maior = a.length > b.length ? a : b;
-	if (menor.length < 4) return false;
-
-	return maior.startsWith(menor + " ") || maior === menor;
+	return a.length > 0 && a === chaveExercicio(nomeHistorico);
 }
 
 export function parseDataHistorico(dataStr: string): Date | null {
@@ -137,13 +135,15 @@ function ehMesmoDia(dataA: Date, dataB: Date): boolean {
 	);
 }
 
-function historicoCombinaComNomeLista(
-	nomeLista: string,
-	nomeHistoricoCompleto: string,
-): boolean {
+/**
+ * O registro do histórico é deste exercício da lista? Nome igual, ou — para
+ * um registro composto "A + B" — igual a uma das partes (fez o bi-set, conta
+ * para "A" e para "B" avulsos).
+ */
+function historicoCombinaComNomeLista(nomeLista: string, nomeHistoricoCompleto: string): boolean {
+	if (nomesExercicioCompativeis(nomeLista, nomeHistoricoCompleto)) return true;
 	const partes = partesNomeComposto(nomeHistoricoCompleto);
-	if (partes.length === 0) return false;
-	return partes.some((parte) => nomesExercicioCompativeis(nomeLista, parte));
+	return partes.length > 1 && partes.some((parte) => nomesExercicioCompativeis(nomeLista, parte));
 }
 
 function dataCampoComoString(val: unknown): string | null {
