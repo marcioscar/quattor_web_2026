@@ -53,10 +53,14 @@ export async function buscarAluno(registration: number): Promise<AlunoResumo | n
 	};
 }
 
-/** Exercícios do grupo na semana (coleção `treinos`) — como o GET /exercicio/ da API. */
-export async function buscarExercicios(semana: string, grupo: string): Promise<unknown[]> {
+/**
+ * Exercícios do grupo na semana (coleção `treinos`) — como o GET /exercicio/ da API.
+ * Filtra também pelo ano: sem isso a semana 42 de um ano mostraria o treino da
+ * semana 42 do ano anterior quando o novo ainda não foi cadastrado.
+ */
+export async function buscarExercicios(semana: string, ano: number, grupo: string): Promise<unknown[]> {
 	const treino = await db.treino.findFirst({
-		where: { semana: Number(semana), grupo },
+		where: { semana: Number(semana), ano, grupo },
 		select: { exercicios: true },
 	});
 	if (!treino) throw { type: "NOT_FOUND", message: "Exercícios não encontrados" };
