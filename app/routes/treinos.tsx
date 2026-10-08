@@ -15,7 +15,7 @@ import {
 	parseDataHistorico,
 	type TreinoHistorico,
 } from "../utils/historicoExercicio";
-import { semanaDoAnoAtualParaApi } from "../utils/semanaDoAno";
+import { anoISO8601, semanaDoAnoAtualParaApi } from "../utils/semanaDoAno";
 import type { Route } from "./+types/treinos";
 
 export type TreinosLoaderData = {
@@ -42,14 +42,14 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 	const url = new URL(request.url);
 	const semana = semanaDoAnoAtualParaApi();
-	const ano = new Date().getFullYear();
+	const ano = anoISO8601(new Date());
 	const grupo = parseGrupo(url.searchParams.get("grupo"));
 
 	let exercicios: unknown[] = [];
 	let erroExercicios: string | null = null;
 	let historicoTreinos: TreinoHistorico[] = [];
 	try {
-		const raw = await buscarExercicios(semana, grupo);
+		const raw = await buscarExercicios(semana, ano, grupo);
 		exercicios = normalizarListaExercicios(raw);
 	} catch (error) {
 		erroExercicios = extrairMensagemErro(error);

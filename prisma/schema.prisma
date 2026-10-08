@@ -117,11 +117,13 @@ model TurmaMatricula {
     fim     DateTime?
 }
 
-/// Treino da semana por grupo muscular. `semana` = semana ISO do ano.
+/// Treino da semana por grupo muscular. `semana` = semana ISO do ano e
+/// `ano` = ano ISO dessa semana (gravados pelo financeiro_quattor).
 model Treino {
     id         String @id @default(auto()) @map("_id") @db.ObjectId
     grupo      String?
     semana     Int?
+    ano        Int?
     /// [{ nome, Repeticoes, obs, video, carga }]
     exercicios Json?
 
