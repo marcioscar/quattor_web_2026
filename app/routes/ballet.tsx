@@ -1,11 +1,16 @@
 import { CalendarDays, Clock, MapPin, Ticket } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import MainNavbar from "../components/MainNavbar";
-import { BotaoIngresso } from "../components/BannerBallet";
+import { BotaoIngresso, Estrelas } from "../components/BannerBallet";
 import { ESPETACULO } from "../ballet/espetaculo";
 import type { Route } from "./+types/ballet";
 
 const WHATSAPP = "https://wa.me/5561993190568";
+
+/** Faixa de tijolos amarelos entre as seções. */
+function Estrada() {
+	return <div aria-hidden className='oz-estrada' />;
+}
 
 export function meta({}: Route.MetaArgs) {
 	const descricao = `Espetáculo de Ballet da Quattor Academia — ${ESPETACULO.data}, ${ESPETACULO.local}. Sessões às 16h30 e 19h.`;
@@ -34,17 +39,27 @@ export default function Ballet() {
 						/>
 					</picture>
 					<div className='absolute inset-0 -z-10 bg-gradient-to-b from-[#060b09]/60 via-transparent to-[#060b09]' />
+					<Estrelas />
 					<div className='mx-auto w-full max-w-3xl px-4 pb-12 text-center'>
-						<img src='/ballet/espetaculo.webp' alt='Espetáculo de Ballet' className='mx-auto w-[min(80%,440px)]' />
+						<img
+							src='/ballet/espetaculo.webp'
+							alt='Espetáculo de Ballet'
+							className='oz-surgir mx-auto w-[min(80%,440px)]'
+							style={{ "--atraso": "0.15s" } as React.CSSProperties}
+						/>
 						<img
 							src='/ballet/titulo.webp'
 							alt={ESPETACULO.titulo}
-							className='mx-auto mt-2 w-[min(70%,360px)] drop-shadow-[0_0_18px_rgba(255,214,102,0.5)]'
+							className='oz-surgir oz-titulo mx-auto mt-2 w-[min(70%,360px)]'
 						/>
-						<p className='mt-5 text-xl font-bold uppercase tracking-wide sm:text-2xl'>
+						<p
+							className='oz-surgir mt-5 text-xl font-bold uppercase tracking-wide sm:text-2xl'
+							style={{ "--atraso": "0.85s" } as React.CSSProperties}>
 							<span className='text-[#e8c25a]'>{ESPETACULO.data}</span> · {ESPETACULO.local}
 						</p>
-						<div className='mt-6 flex flex-col justify-center gap-3 sm:flex-row'>
+						<div
+							className='oz-surgir mt-6 flex flex-col justify-center gap-3 sm:flex-row'
+							style={{ "--atraso": "1.05s" } as React.CSSProperties}>
 							{ESPETACULO.sessoes.map((s) => (
 								<BotaoIngresso key={s.hora} {...s} grande />
 							))}
@@ -53,6 +68,8 @@ export default function Ballet() {
 				</section>
 
 				<div className='mx-auto max-w-3xl space-y-8 px-4 pb-16'>
+					<Estrada />
+
 					{/* Sessões */}
 					<section>
 						<h2 className='mb-4 text-xl font-bold sm:text-2xl'>Escolha a sua sessão</h2>
@@ -82,6 +99,8 @@ export default function Ballet() {
 							A venda é feita pela Bilheteria Digital; o link abre em outra aba.
 						</p>
 					</section>
+
+					<Estrada />
 
 					{/* Informações */}
 					<section>

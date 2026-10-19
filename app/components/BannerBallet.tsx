@@ -1,6 +1,43 @@
 import { Link } from "react-router";
-import { ArrowRight, MapPin, Ticket } from "lucide-react";
-import { ESPETACULO } from "../ballet/espetaculo";
+import { ArrowRight, Hourglass, MapPin, Ticket } from "lucide-react";
+import { diasParaEspetaculo, ESPETACULO, textoContagem } from "../ballet/espetaculo";
+
+/**
+ * Estrelas piscando no céu da arte (banner e capa da /ballet). Posições fixas
+ * (sorteio com semente), para o HTML do servidor e o do navegador saírem
+ * iguais na hidratação.
+ */
+const ESTRELAS = (() => {
+	let semente = 7;
+	const sortear = () => ((semente = (semente * 16807) % 2147483647) - 1) / 2147483646;
+	return Array.from({ length: 34 }, (_, i) => {
+		const brilho = i % 6 === 0;
+		return {
+			brilho,
+			left: `${(sortear() * 100).toFixed(1)}%`,
+			top: `${(sortear() * 55).toFixed(1)}%`,
+			tam: `${brilho ? 12 + sortear() * 8 : 3 + sortear() * 4}px`,
+			dur: `${(2.5 + sortear() * 3).toFixed(2)}s`,
+			atraso: `${(sortear() * 4).toFixed(2)}s`,
+		};
+	});
+})();
+
+export function Estrelas() {
+	return (
+		<div aria-hidden className='pointer-events-none absolute inset-0 -z-10'>
+			{ESTRELAS.map((e, i) => (
+				<span
+					key={i}
+					className={`oz-estrela${e.brilho ? " brilho" : ""}`}
+					style={
+						{ left: e.left, top: e.top, "--tam": e.tam, "--dur": e.dur, "--atraso": e.atraso } as React.CSSProperties
+					}
+				/>
+			))}
+		</div>
+	);
+}
 
 /** Botão de compra de uma sessão — abre a Bilheteria Digital em outra aba. */
 export function BotaoIngresso({ hora, ingresso, grande = false }: { hora: string; ingresso: string; grande?: boolean }) {
@@ -20,6 +57,7 @@ export function BotaoIngresso({ hora, ingresso, grande = false }: { hora: string
 
 /** Destaque do espetáculo no topo da página inicial. */
 export default function BannerBallet() {
+	const contagem = textoContagem(diasParaEspetaculo());
 	return (
 		<section className='relative isolate overflow-hidden rounded-3xl bg-[#060b09] shadow-lg'>
 			<picture>
@@ -31,17 +69,26 @@ export default function BannerBallet() {
 				/>
 			</picture>
 			<div className='absolute inset-0 -z-10 bg-gradient-to-t from-[#060b09] via-[#060b09]/55 to-[#060b09]/20 sm:bg-gradient-to-r sm:from-[#060b09]/90 sm:via-[#060b09]/50 sm:to-transparent' />
+			<Estrelas />
 
 			<div className='flex min-h-[460px] flex-col justify-end gap-5 p-6 sm:min-h-[380px] sm:max-w-xl sm:justify-center sm:p-10'>
 				<div className='mx-auto w-full max-w-sm text-center sm:mx-0 sm:text-left'>
-					<p className='mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur'>
-						Espetáculo de fim de ano · Ballet Quattor
-					</p>
+					<div className='mb-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start'>
+						<p className='inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur'>
+							Espetáculo de fim de ano · Ballet Quattor
+						</p>
+						{contagem && (
+							<p className='inline-flex items-center gap-1.5 rounded-full bg-[#e8c25a] px-3 py-1 text-xs font-bold text-[#060b09]'>
+								<Hourglass className='h-3.5 w-3.5' />
+								{contagem}
+							</p>
+						)}
+					</div>
 					<img src='/ballet/espetaculo.webp' alt='Espetáculo de Ballet' className='mx-auto w-full sm:mx-0' />
 					<img
 						src='/ballet/titulo.webp'
 						alt={ESPETACULO.titulo}
-						className='mx-auto mt-2 w-2/3 drop-shadow-[0_0_18px_rgba(255,214,102,0.45)] sm:mx-0 sm:w-1/2'
+						className='oz-brilho mx-auto mt-2 w-2/3 sm:mx-0 sm:w-1/2'
 					/>
 				</div>
 

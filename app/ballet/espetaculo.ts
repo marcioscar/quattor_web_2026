@@ -26,3 +26,16 @@ const FIM_DIVULGACAO = Date.parse("2026-11-16T03:00:00.000Z");
 export function espetaculoEmDivulgacao(agora: Date = new Date()): boolean {
 	return agora.getTime() < FIM_DIVULGACAO;
 }
+
+/** Dias de calendário (em Brasília) de hoje até o espetáculo: 0 no dia, negativo depois. */
+export function diasParaEspetaculo(agora: Date = new Date()): number {
+	const hoje = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(agora);
+	return Math.round((Date.parse("2026-11-15") - Date.parse(hoje)) / 86_400_000);
+}
+
+export function textoContagem(dias: number): string | null {
+	if (dias < 0) return null;
+	if (dias === 0) return "É hoje!";
+	if (dias === 1) return "É amanhã!";
+	return `Faltam ${dias} dias`;
+}

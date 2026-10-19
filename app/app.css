@@ -166,3 +166,61 @@ body {
     padding-bottom: calc(4.25rem + env(safe-area-inset-bottom));
   }
 }
+
+/* Página /ballet ("O Mágico de Oz"): estrelas, estrada de tijolos e entrada do título. */
+.oz-estrela {
+  position: absolute;
+  width: var(--tam);
+  height: var(--tam);
+  background: radial-gradient(circle, #fffbe8 0 30%, rgba(255, 214, 102, 0.55) 55%, transparent 72%);
+  border-radius: 9999px;
+  animation: oz-piscar var(--dur) var(--atraso) ease-in-out infinite;
+  pointer-events: none;
+}
+.oz-estrela.brilho {
+  background: #fff6d6;
+  border-radius: 0;
+  clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%);
+  filter: drop-shadow(0 0 4px rgba(255, 214, 102, 0.9));
+}
+@keyframes oz-piscar {
+  0%, 100% { opacity: 0.15; transform: scale(0.6); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.oz-estrada {
+  height: 24px;
+  border-radius: 6px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24'%3E%3Crect width='48' height='24' fill='%237a5208'/%3E%3Crect x='1' y='1' width='46' height='10' rx='1.5' fill='%23f2c230'/%3E%3Crect x='-23' y='13' width='46' height='10' rx='1.5' fill='%23e3ac1c'/%3E%3Crect x='25' y='13' width='46' height='10' rx='1.5' fill='%23e3ac1c'/%3E%3C/svg%3E");
+  box-shadow: 0 0 28px rgba(242, 194, 48, 0.35);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+
+.oz-surgir {
+  opacity: 0;
+  animation: oz-surgir 1s var(--atraso, 0s) cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+.oz-titulo {
+  animation:
+    oz-surgir 1.1s 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) forwards,
+    oz-brilhar 4s 1.6s ease-in-out infinite;
+}
+/* Só o brilho pulsando, sem a entrada (banner da home). */
+.oz-brilho {
+  animation: oz-brilhar 4s ease-in-out infinite;
+}
+@keyframes oz-surgir {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes oz-brilhar {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 214, 102, 0.35)); }
+  50% { filter: drop-shadow(0 0 22px rgba(255, 214, 102, 0.75)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oz-estrela { animation: none; opacity: 0.7; }
+  .oz-surgir { animation: none; opacity: 1; }
+  .oz-brilho { animation: none; filter: drop-shadow(0 0 14px rgba(255, 214, 102, 0.5)); }
+}
