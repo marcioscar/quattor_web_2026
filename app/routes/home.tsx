@@ -3,6 +3,8 @@ import { Link, useLoaderData } from "react-router";
 import { ArrowRight, CalendarDays, Clock, LogIn, Mail, MapPin, Search, UserPlus, X } from "lucide-react";
 import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import MainNavbar from "../components/MainNavbar";
+import BannerBallet from "../components/BannerBallet";
+import { espetaculoEmDivulgacao } from "../ballet/espetaculo";
 import type { Route } from "./+types/home";
 import { aulasDoDia, hojeBrasilia, type Aula } from "../aulas/agenda.server";
 
@@ -103,7 +105,7 @@ const MODALIDADES = [
 		titulo: "Ballet",
 		subtitulo: "Do baby ao adulto, com pontas e contemporâneo",
 		imagem: "/ballet.webp",
-		selo: "Infantil e adulto",
+		selo: espetaculoEmDivulgacao() ? "Espetáculo 15/11" : "Infantil e adulto",
 		busca: "Ballet",
 	},
 	{
@@ -166,6 +168,8 @@ export default function Home() {
 			<MainNavbar />
 			<main className='bg-quattor-fundo'>
 				<div className='mx-auto max-w-6xl space-y-10 px-4 py-6 sm:py-10'>
+					{espetaculoEmDivulgacao() && <BannerBallet />}
+
 					{/* Bento: destaque + horário + contato */}
 					<section className='grid gap-4 lg:grid-cols-3'>
 						<div
