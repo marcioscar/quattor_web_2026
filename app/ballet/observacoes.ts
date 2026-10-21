@@ -10,7 +10,7 @@ export function validarObservacao(
 ): { ok: true; dados: NovaObservacao } | { ok: false; erro: string } {
 	const faixa = String(form.faixa ?? "");
 	const situacao = String(form.situacao ?? "");
-	const professor = String(form.professor ?? "").trim().replace(/\s+/g, " ");
+	const professor = limparNome(form.professor);
 	const texto = String(form.texto ?? "").trim();
 
 	if (!faixasValidas.has(faixa)) return { ok: false, erro: "Música não encontrada." };
@@ -21,4 +21,33 @@ export function validarObservacao(
 	if (texto.length > 1000) return { ok: false, erro: "Observação muito longa (até 1000 letras)." };
 
 	return { ok: true, dados: { faixa, situacao: situacao as Situacao, professor, texto: texto || null } };
+}
+
+/** Nome de quem está agindo: sem espaços sobrando, até 60 letras. */
+function limparNome(nome: unknown): string {
+	return String(nome ?? "").trim().replace(/\s+/g, " ");
+}
+
+export function validarResolucao(form: {
+	id?: unknown;
+	professor?: unknown;
+}): { ok: true; id: string; professor: string } | { ok: false; erro: string } {
+	const id = String(form.id ?? "");
+	const professor = limparNome(form.professor);
+	if (!/^[0-9a-f]{24}$/.test(id)) return { ok: false, erro: "Observação não encontrada." };
+	if (!professor) return { ok: false, erro: "Coloque o seu nome no campo acima para marcar como resolvido." };
+	if (professor.length > 60) return { ok: false, erro: "Nome muito longo." };
+	return { ok: true, id, professor };
+}
+
+/**
+ * Situação da faixa na lista: "ajustar" enquanto houver pedido de ajuste sem
+ * resolver; "ok" se já foi avaliada e não há pendência; null se ninguém avaliou.
+ */
+export function situacaoDaFaixa(
+	observacoes: { situacao: Situacao; resolvidoEm: string | null }[],
+): { situacao: Situacao; pendentes: number } | null {
+	if (observacoes.length === 0) return null;
+	const pendentes = observacoes.filter((o) => o.situacao === "ajustar" && !o.resolvidoEm).length;
+	return { situacao: pendentes > 0 ? "ajustar" : "ok", pendentes };
 }

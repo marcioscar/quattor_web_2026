@@ -1,8 +1,10 @@
-/** Faixas do espetáculo na ordem das cenas — arquivos no Google Drive da escola. */
-export const PASTA_MUSICAS = "https://drive.google.com/drive/folders/11AnQjZ5vWpSx19G4_LFMArCgFBozPthb?usp=sharing";
+/** Pasta pública do Drive com as músicas do espetáculo. A página lê a lista dela (pastaDrive.server.ts). */
+export const PASTA_ID = "11AnQjZ5vWpSx19G4_LFMArCgFBozPthb";
+export const PASTA_MUSICAS = `https://drive.google.com/drive/folders/${PASTA_ID}?usp=sharing`;
 
 export type Faixa = { numero: string; nome: string; drive: string; obs?: string };
 
+/** Lista de reserva: vale até a primeira leitura da pasta dar certo (ou se o Drive falhar desde o início). */
 export const FAIXAS: Faixa[] = [
 	{ numero: "01", nome: "Narração + Abertura das cortinas", drive: "16jm4ZKzB2GkTwfXVchuL4It_zvcA0IWy" },
 	{ numero: "02", nome: "Tia Anne e Tio Henry", drive: "1KUMC9XYV3a4yoFFXxfl5xeAL6SENy21H" },
@@ -32,4 +34,5 @@ export const FAIXAS: Faixa[] = [
 	{ numero: "28", nome: "O Mágico de Oz e sua história", drive: "12onrAC_9nySMprzaCEl0yEjhvje0Ij_7" },
 	{ numero: "29", nome: "Os Presentes do Mágico", drive: "1JcxQijqZGYqz7V551iWCypNN-EHX92Gg" },
 	{ numero: "30", nome: "Dorothy volta para casa", drive: "1R5Y0mqyV2KOH2RBnJ7suaJvCJIbiX5ol" },
+	{ numero: "31", nome: "Camila", drive: "1o-za_8rXCFCZFyQje1D2hbsMv9EpNRPL" },
 ];

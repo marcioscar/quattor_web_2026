@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFetcher, useLoaderData } from "react-router";
-import { CircleCheck, ExternalLink, FolderOpen, MessageSquare, Pause, Play, Search, Wrench } from "lucide-react";
+import { CheckCheck, CircleCheck, ExternalLink, FolderOpen, MessageSquare, Pause, Play, Search, Wrench } from "lucide-react";
 import MainNavbar from "../components/MainNavbar";
-import { FAIXAS, PASTA_MUSICAS } from "../ballet/musicas";
+import { PASTA_MUSICAS } from "../ballet/musicas";
+import { faixasDoDrive } from "../ballet/pastaDrive.server";
 import { ESPETACULO } from "../ballet/espetaculo";
-import { validarObservacao, type Situacao } from "../ballet/observacoes";
-import { criarObservacao, listarObservacoes, type Observacao } from "../ballet/observacoes.server";
+import { situacaoDaFaixa, validarObservacao, validarResolucao, type Situacao } from "../ballet/observacoes";
+import { criarObservacao, listarObservacoes, resolverObservacao, type Observacao } from "../ballet/observacoes.server";
 import type { Route } from "./+types/musicas";
 
 export function meta({}: Route.MetaArgs) {
@@ -18,21 +19,34 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader() {
+	const faixas = await faixasDoDrive();
 	try {
-		return { observacoes: await listarObservacoes(), bancoFora: false };
+		return { faixas, observacoes: await listarObservacoes(), bancoFora: false };
 	} catch (erro) {
 		// Sem o banco as músicas continuam tocando; só as observações somem.
 		console.error("[musicas] falha ao ler observações:", erro);
-		return { observacoes: [] as Observacao[], bancoFora: true };
+		return { faixas, observacoes: [] as Observacao[], bancoFora: true };
 	}
 }
-
-const FAIXAS_VALIDAS = new Set(FAIXAS.map((f) => f.drive));
 
 export async function action({ request }: Route.ActionArgs) {
 	const form = Object.fromEntries(await request.formData());
 	const faixa = String(form.faixa ?? "");
-	const validacao = validarObservacao(form, FAIXAS_VALIDAS);
+
+	if (form.intencao === "resolver") {
+		const id = String(form.id ?? "");
+		const validacao = validarResolucao(form);
+		if (!validacao.ok) return { faixa, id, erro: validacao.erro };
+		try {
+			await resolverObservacao(validacao.id, validacao.professor);
+		} catch (erro) {
+			console.error("[musicas] falha ao resolver observação:", erro);
+			return { faixa, id, erro: "Não foi possível salvar agora. Tente de novo em instantes." };
+		}
+		return { faixa, id, erro: null };
+	}
+
+	const validacao = validarObservacao(form, new Set((await faixasDoDrive()).map((f) => f.drive)));
 	if (!validacao.ok) return { faixa, erro: validacao.erro };
 	try {
 		await criarObservacao(validacao.dados);
@@ -71,19 +85,41 @@ function quando(iso: string): string {
 	}).format(new Date(iso));
 }
 
-/** Selo da última observação da faixa, na linha da lista. */
-function SeloSituacao({ situacao, total }: { situacao: Situacao; total: number }) {
-	const ok = situacao === "ok";
+/** Selo verde (ok), amarelo (ajustar, com quantos faltam) ou cinza (resolvido). */
+function Selo({ tipo, contador }: { tipo: Situacao | "resolvido"; contador?: number }) {
+	const estilo = {
+		ok: { cor: "bg-[#2fd28c]/15 text-[#2fd28c]", rotulo: "Ok", Icone: CircleCheck },
+		ajustar: { cor: "bg-[#e8c25a]/15 text-[#e8c25a]", rotulo: "Ajustar", Icone: Wrench },
+		resolvido: { cor: "bg-white/10 text-[#a3b2a9]", rotulo: "Resolvido", Icone: CheckCheck },
+	}[tipo];
 	return (
-		<span
-			className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-				ok ? "bg-[#2fd28c]/15 text-[#2fd28c]" : "bg-[#e8c25a]/15 text-[#e8c25a]"
-			}`}
-			title={`${total} ${total === 1 ? "observação" : "observações"}`}>
-			{ok ? <CircleCheck className='h-3.5 w-3.5' /> : <Wrench className='h-3.5 w-3.5' />}
-			<span className='hidden sm:inline'>{ok ? "Ok" : "Ajustar"}</span>
-			{total > 1 && <span className='opacity-70'>· {total}</span>}
+		<span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${estilo.cor}`}>
+			<estilo.Icone className='h-3.5 w-3.5' />
+			<span className={contador === undefined ? "" : "hidden sm:inline"}>{estilo.rotulo}</span>
+			{contador !== undefined && contador > 1 && <span className='opacity-70'>· {contador}</span>}
 		</span>
+	);
+}
+
+/** "Marcar como resolvido" de um pedido de ajuste — quem marca é o nome do formulário. */
+function BotaoResolver({ faixa, id, nome }: { faixa: string; id: string; nome: string }) {
+	const fetcher = useFetcher<typeof action>();
+	const erro = fetcher.state === "idle" && fetcher.data?.id === id ? fetcher.data.erro : null;
+	return (
+		<fetcher.Form method='post' className='mt-2' onSubmit={() => salvarNome(nome.trim())}>
+			<input type='hidden' name='intencao' value='resolver' />
+			<input type='hidden' name='faixa' value={faixa} />
+			<input type='hidden' name='id' value={id} />
+			<input type='hidden' name='professor' value={nome} />
+			<button
+				type='submit'
+				disabled={fetcher.state !== "idle"}
+				className='inline-flex items-center gap-1.5 rounded-lg bg-[#13211b] px-3 py-1.5 text-xs font-semibold text-[#2fd28c] transition hover:bg-[#1a2b23] disabled:opacity-50'>
+				<CheckCheck className='h-3.5 w-3.5' />
+				{fetcher.state !== "idle" ? "Salvando…" : "Marcar como resolvido"}
+			</button>
+			{erro && <p className='mt-1.5 text-xs text-[#ff8a9a]'>{erro}</p>}
+		</fetcher.Form>
 	);
 }
 
@@ -94,7 +130,7 @@ function Observacoes({ faixa, observacoes, bancoFora }: { faixa: string; observa
 	const [nome, setNome] = useState("");
 	const [situacao, setSituacao] = useState<Situacao | null>(null);
 	const enviando = fetcher.state !== "idle";
-	const resposta = fetcher.data?.faixa === faixa ? fetcher.data : undefined;
+	const resposta = fetcher.data?.faixa === faixa && !("id" in fetcher.data) ? fetcher.data : undefined;
 
 	useEffect(() => setNome(lerNomeSalvo()), []);
 
@@ -168,16 +204,29 @@ function Observacoes({ faixa, observacoes, bancoFora }: { faixa: string; observa
 
 			{observacoes.length > 0 && (
 				<ul className='space-y-2'>
-					{observacoes.map((o) => (
-						<li key={o.id} className='rounded-xl bg-[#0d1713] p-3 text-sm'>
-							<p className='flex flex-wrap items-center gap-x-2 gap-y-1'>
-								<SeloSituacao situacao={o.situacao} total={1} />
-								<span className='font-semibold'>{o.professor}</span>
-								<span className='text-xs text-[#a3b2a9]'>{quando(o.criadoEm)}</span>
-							</p>
-							{o.texto && <p className='mt-1.5 whitespace-pre-line text-[#d9d4c6]'>{o.texto}</p>}
-						</li>
-					))}
+					{observacoes.map((o) => {
+						const resolvido = o.situacao === "ajustar" && !!o.resolvidoEm;
+						return (
+							<li key={o.id} className={`rounded-xl bg-[#0d1713] p-3 text-sm ${resolvido ? "opacity-60" : ""}`}>
+								<p className='flex flex-wrap items-center gap-x-2 gap-y-1'>
+									<Selo tipo={resolvido ? "resolvido" : o.situacao} />
+									<span className='font-semibold'>{o.professor}</span>
+									<span className='text-xs text-[#a3b2a9]'>{quando(o.criadoEm)}</span>
+								</p>
+								{o.texto && (
+									<p className={`mt-1.5 whitespace-pre-line text-[#d9d4c6] ${resolvido ? "line-through" : ""}`}>{o.texto}</p>
+								)}
+								{resolvido && o.resolvidoEm && (
+									<p className='mt-1.5 text-xs text-[#a3b2a9]'>
+										Resolvido{o.resolvidoPor ? ` por ${o.resolvidoPor}` : ""} em {quando(o.resolvidoEm)}
+									</p>
+								)}
+								{o.situacao === "ajustar" && !o.resolvidoEm && !bancoFora && (
+									<BotaoResolver faixa={faixa} id={o.id} nome={nome} />
+								)}
+							</li>
+						);
+					})}
 				</ul>
 			)}
 		</div>
@@ -192,7 +241,7 @@ function normalizar(texto: string): string {
 export default function Musicas() {
 	const [busca, setBusca] = useState("");
 	const [tocando, setTocando] = useState<string | null>(null);
-	const { observacoes, bancoFora } = useLoaderData<typeof loader>();
+	const { faixas, observacoes, bancoFora } = useLoaderData<typeof loader>();
 
 	const porFaixa = useMemo(() => {
 		const mapa = new Map<string, Observacao[]>();
@@ -202,8 +251,8 @@ export default function Musicas() {
 
 	const visiveis = useMemo(() => {
 		const termo = normalizar(busca.trim());
-		return FAIXAS.filter((f) => !termo || normalizar(`${f.numero} ${f.nome}`).includes(termo));
-	}, [busca]);
+		return faixas.filter((f) => !termo || normalizar(`${f.numero} ${f.nome}`).includes(termo));
+	}, [faixas, busca]);
 
 	return (
 		<>
@@ -248,6 +297,7 @@ export default function Musicas() {
 							{visiveis.map((f) => {
 								const aberta = tocando === f.drive;
 								const obs = porFaixa.get(f.drive) ?? [];
+								const resumo = situacaoDaFaixa(obs);
 								return (
 									<li key={f.drive}>
 										<div className={`flex items-center gap-3 px-3 py-3 sm:px-4 ${aberta ? "bg-[#13211b]" : ""}`}>
@@ -265,7 +315,7 @@ export default function Musicas() {
 														</span>
 													)}
 												</span>
-												{obs.length > 0 && <SeloSituacao situacao={obs[0].situacao} total={obs.length} />}
+												{resumo && <Selo tipo={resumo.situacao} contador={resumo.pendentes} />}
 												<span
 													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
 														aberta ? "bg-[#e8c25a] text-[#060b09]" : "bg-[#2fd28c] text-[#060b09]"
