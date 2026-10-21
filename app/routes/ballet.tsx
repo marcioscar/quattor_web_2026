@@ -19,7 +19,7 @@ export function meta({}: Route.MetaArgs) {
 		{ name: "description", content: descricao },
 		{ property: "og:title", content: `${ESPETACULO.titulo} · Espetáculo de Ballet Quattor` },
 		{ property: "og:description", content: descricao },
-		{ property: "og:image", content: "/ballet/og.jpg" },
+		{ property: "og:image", content: "/espetaculo/og.jpg" },
 	];
 }
 
@@ -31,9 +31,9 @@ export default function Ballet() {
 				{/* Capa */}
 				<section className='relative isolate flex min-h-[85svh] items-end overflow-hidden pt-24'>
 					<picture>
-						<source media='(max-width: 639px)' srcSet='/ballet/fundo_retrato.webp' />
+						<source media='(max-width: 639px)' srcSet='/espetaculo/fundo_retrato.webp' />
 						<img
-							src='/ballet/fundo.webp'
+							src='/espetaculo/fundo.webp'
 							alt=''
 							className='absolute inset-0 -z-10 h-full w-full object-cover object-[50%_70%]'
 						/>
@@ -42,13 +42,13 @@ export default function Ballet() {
 					<Estrelas />
 					<div className='mx-auto w-full max-w-3xl px-4 pb-12 text-center'>
 						<img
-							src='/ballet/espetaculo.webp'
+							src='/espetaculo/espetaculo.webp'
 							alt='Espetáculo de Ballet'
 							className='oz-surgir mx-auto w-[min(80%,440px)]'
 							style={{ "--atraso": "0.15s" } as React.CSSProperties}
 						/>
 						<img
-							src='/ballet/titulo.webp'
+							src='/espetaculo/titulo.webp'
 							alt={ESPETACULO.titulo}
 							className='oz-surgir oz-titulo mx-auto mt-2 w-[min(70%,360px)]'
 						/>

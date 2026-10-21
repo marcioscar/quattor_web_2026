@@ -61,9 +61,9 @@ export default function BannerBallet() {
 	return (
 		<section className='relative isolate overflow-hidden rounded-3xl bg-[#060b09] shadow-lg'>
 			<picture>
-				<source media='(max-width: 639px)' srcSet='/ballet/fundo_retrato.webp' />
+				<source media='(max-width: 639px)' srcSet='/espetaculo/fundo_retrato.webp' />
 				<img
-					src='/ballet/fundo.webp'
+					src='/espetaculo/fundo.webp'
 					alt=''
 					className='absolute inset-0 -z-10 h-full w-full object-cover object-[50%_70%]'
 				/>
@@ -84,9 +84,9 @@ export default function BannerBallet() {
 							</p>
 						)}
 					</div>
-					<img src='/ballet/espetaculo.webp' alt='Espetáculo de Ballet' className='mx-auto w-full sm:mx-0' />
+					<img src='/espetaculo/espetaculo.webp' alt='Espetáculo de Ballet' className='mx-auto w-full sm:mx-0' />
 					<img
-						src='/ballet/titulo.webp'
+						src='/espetaculo/titulo.webp'
 						alt={ESPETACULO.titulo}
 						className='oz-brilho mx-auto mt-2 w-2/3 sm:mx-0 sm:w-1/2'
 					/>
