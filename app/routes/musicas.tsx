@@ -283,15 +283,13 @@ export default function Musicas() {
 											</a>
 										</div>
 										{aberta && (
-											// O player do Drive pede uns 120px; o recorte esconde a barra de volume pela metade embaixo.
-											<div className='h-[88px] overflow-hidden bg-[#2a2b2f]'>
-												<iframe
-													src={`https://drive.google.com/file/d/${f.drive}/preview`}
-													title={f.nome}
-													allow='autoplay'
-													className='block h-[120px] w-full border-0'
-												/>
-											</div>
+											// Abaixo de ~200px o player do Drive espreme a onda e corta o topo.
+											<iframe
+												src={`https://drive.google.com/file/d/${f.drive}/preview`}
+												title={f.nome}
+												allow='autoplay'
+												className='block h-[200px] w-full border-0 bg-[#202124]'
+											/>
 										)}
 										{aberta && <Observacoes faixa={f.drive} observacoes={obs} bancoFora={bancoFora} />}
 									</li>
