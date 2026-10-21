@@ -12,6 +12,7 @@
 // O que este projeto pode GRAVAR:
 //   - Aluno: só `senhaHash` e `senhaDefinidaEm` (updateMany com esses dois).
 //   - WebAlunoCodigoAcesso: coleção própria deste projeto.
+//   - WebMusicaObservacao: coleção própria deste projeto (página /musicas).
 //   - historicoExercicios: $push em `histexe` (ver treinos.server.ts).
 
 generator client {
@@ -66,6 +67,19 @@ model WebAlunoCodigoAcesso {
     tentativas Int       @default(0)
     usadoEm    DateTime?
     criadoEm   DateTime  @default(now())
+}
+
+/// Retorno dos professores sobre as músicas do espetáculo (/musicas) —
+/// coleção DESTE projeto. Uma linha por observação, nunca editada.
+model WebMusicaObservacao {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    /// id do arquivo no Google Drive (ver app/ballet/musicas.ts)
+    faixa     String
+    /// "ok" | "ajustar"
+    situacao  String
+    professor String
+    texto     String?
+    criadoEm  DateTime @default(now())
 }
 
 // ── Grade de aulas (só leitura) — mesmo motor do recepção, ver app/aulas/ ──

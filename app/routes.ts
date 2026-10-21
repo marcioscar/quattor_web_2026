@@ -10,5 +10,6 @@ export default [
     route("aluno/:registration", "routes/aluno.tsx"),
     route("historico/:registration", "routes/historico.tsx"),
     route("ballet", "routes/ballet.tsx"),
+    route("musicas", "routes/musicas.tsx"),
    
 ] satisfies RouteConfig;
