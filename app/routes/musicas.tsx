@@ -20,8 +20,9 @@ export function meta({}: Route.MetaArgs) {
 export async function loader() {
 	try {
 		return { observacoes: await listarObservacoes(), bancoFora: false };
-	} catch {
+	} catch (erro) {
 		// Sem o banco as músicas continuam tocando; só as observações somem.
+		console.error("[musicas] falha ao ler observações:", erro);
 		return { observacoes: [] as Observacao[], bancoFora: true };
 	}
 }
@@ -35,7 +36,8 @@ export async function action({ request }: Route.ActionArgs) {
 	if (!validacao.ok) return { faixa, erro: validacao.erro };
 	try {
 		await criarObservacao(validacao.dados);
-	} catch {
+	} catch (erro) {
+		console.error("[musicas] falha ao salvar observação:", erro);
 		return { faixa, erro: "Não foi possível salvar agora. Tente de novo em instantes." };
 	}
 	return { faixa, erro: null };
