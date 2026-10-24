@@ -278,7 +278,6 @@ export default function Musicas() {
 							</span>
 							<span className='text-[#a3b2a9]'>
 								{faixas.length} faixas
-								{faixas.some((f) => f.obs === "outra versão") && " · sem contar as outras versões"}
 								{total.faltam > 0 && ` · falta o tempo de ${total.faltam === 1 ? "1 faixa" : `${total.faltam} faixas`}`}
 							</span>
 						</p>

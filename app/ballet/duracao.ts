@@ -17,15 +17,11 @@ export function formatarTotal(segundos: number): string {
 	return h ? `${h}h${m ? ` ${m}min` : ""}` : `${m}min`;
 }
 
-/**
- * Soma do espetáculo: as "outras versões" (18.1 ao lado da 18) não entram,
- * porque só uma das duas vai tocar. `faltam` = faixas ainda sem duração.
- */
+/** Soma de todas as faixas da pasta. `faltam` = faixas ainda sem duração. */
 export function somarDuracoes(faixas: Faixa[], duracoes: Record<string, number>) {
 	let segundos = 0;
 	let faltam = 0;
 	for (const f of faixas) {
-		if (f.obs === "outra versão") continue;
 		const d = duracoes[f.drive];
 		if (d === undefined) faltam++;
 		else segundos += d;

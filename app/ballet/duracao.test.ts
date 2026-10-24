@@ -26,7 +26,7 @@ describe("somarDuracoes", () => {
 		{ numero: "20", nome: "Dorothy", drive: "d" },
 	];
 
-	it("soma sem as outras versões e conta as que faltam", () => {
-		expect(somarDuracoes(faixas, { a: 100, b: 999, c: 50 })).toEqual({ segundos: 150, faltam: 1 });
+	it("soma todas, inclusive as outras versões, e conta as que faltam", () => {
+		expect(somarDuracoes(faixas, { a: 100, b: 75, c: 50 })).toEqual({ segundos: 225, faltam: 1 });
 	});
 });
