@@ -41,12 +41,12 @@ function ordemDoNumero(numero: string): number {
 /** Faixas de áudio da pasta, ordenadas pelo número; "18.1" ao lado de "18" vira "outra versão". */
 export function faixasDaPasta(html: string): Faixa[] {
 	const faixas: Faixa[] = [];
-	const entrada = /<div class="flip-entry" id="entry-([\w-]+)"[\s\S]*?<a href="([^"]*)"[\s\S]*?<img src="[^"]*\/type\/([^"]+)"[\s\S]*?<div class="flip-entry-title">([\s\S]*?)<\/div>/g;
-	for (const [, drive, link, tipo, tituloHtml] of html.matchAll(entrada)) {
+	const entrada = /<div class="flip-entry" id="entry-([\w-]+)"[\s\S]*?<a href="([^"]*)"[\s\S]*?<img src="[^"]*\/type\/([^"]+)"[\s\S]*?<div class="flip-entry-title">([\s\S]*?)<\/div>(?:<\/a><\/div><div class="flip-entry-last-modified"><div>([^<]*))?/g;
+	for (const [, drive, link, tipo, tituloHtml, modificado] of html.matchAll(entrada)) {
 		const arquivo = decodificarHtml(tituloHtml).trim();
 		if (!link.includes("/file/d/")) continue; // subpasta
 		if (!tipo.startsWith("audio/") && !EXTENSOES_AUDIO.test(arquivo)) continue;
-		faixas.push({ ...lerNomeArquivo(arquivo), drive });
+		faixas.push({ ...lerNomeArquivo(arquivo), drive, ...(modificado ? { modificado: modificado.trim() } : {}) });
 	}
 
 	faixas.sort(

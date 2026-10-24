@@ -2,7 +2,14 @@
 export const PASTA_ID = "11AnQjZ5vWpSx19G4_LFMArCgFBozPthb";
 export const PASTA_MUSICAS = `https://drive.google.com/drive/folders/${PASTA_ID}?usp=sharing`;
 
-export type Faixa = { numero: string; nome: string; drive: string; obs?: string };
+export type Faixa = {
+	numero: string;
+	nome: string;
+	drive: string;
+	obs?: string;
+	/** "Modificado" que a pasta do Drive mostra ("5:35 am", "Sep 29"); muda quando o áudio é trocado. */
+	modificado?: string;
+};
 
 /** Lista de reserva: vale até a primeira leitura da pasta dar certo (ou se o Drive falhar desde o início). */
 export const FAIXAS: Faixa[] = [
@@ -30,6 +37,8 @@ export const FAIXAS: Faixa[] = [
 	{ numero: "20", nome: "Dorothy e seus Amigos", drive: "1FxGk1vhYebNVdP5qiwFyqMPiRVQkTMFG" },
 	{ numero: "21", nome: "Cidade das Esmeraldas", drive: "1NrGay_5IJO8wOcgMKB2m_gHLp3bnwlTY" },
 	{ numero: "22", nome: "Corte da Cidade das Esmeraldas", drive: "1sedWLgMQrU6e0rt5TlgtkdNurgSsFIrE" },
+	{ numero: "23", nome: "Dorothy e o Mágico de Oz", drive: "1s4LqrOGMrgmuKG_fzwR6Cu1edWqZqejS" },
+	{ numero: "24", nome: "Cena — A missão", drive: "1TJrkWmqLG4rAziDr8hZUkc_G55x1JSvc" },
 	{ numero: "25", nome: "Abelhas Gigantes", drive: "1mRfoZi56dGg-HpElK4pLjMFLMBUqnl15" },
 	{ numero: "27", nome: "Bruxas + Bruxa Má + Derrota + Libertação", drive: "1unWE2_IgoTOv3o5WT3ky0bsDd3fGuuUl" },
 	{ numero: "28", nome: "O Mágico de Oz e sua história", drive: "1cHxCq9nYeP0aqVDX3_oxbAr92slma6JG" },

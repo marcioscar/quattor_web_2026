@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFetcher, useLoaderData } from "react-router";
-import { CheckCheck, CircleCheck, ExternalLink, FolderOpen, MessageSquare, Pause, Play, Search, Wrench } from "lucide-react";
+import { CheckCheck, CircleCheck, Clock, ExternalLink, FolderOpen, MessageSquare, Pause, Play, Search, Wrench } from "lucide-react";
 import MainNavbar from "../components/MainNavbar";
 import { PASTA_MUSICAS } from "../ballet/musicas";
 import { faixasDoDrive } from "../ballet/pastaDrive.server";
+import { duracoesDasFaixas } from "../ballet/duracao.server";
+import { formatarDuracao, formatarTotal, somarDuracoes } from "../ballet/duracao";
 import { ESPETACULO } from "../ballet/espetaculo";
 import { situacaoDaFaixa, validarObservacao, validarResolucao, type Situacao } from "../ballet/observacoes";
 import { criarObservacao, listarObservacoes, resolverObservacao, type Observacao } from "../ballet/observacoes.server";
@@ -20,13 +22,15 @@ export function meta({}: Route.MetaArgs) {
 
 export async function loader() {
 	const faixas = await faixasDoDrive();
-	try {
-		return { faixas, observacoes: await listarObservacoes(), bancoFora: false };
-	} catch (erro) {
-		// Sem o banco as músicas continuam tocando; só as observações somem.
-		console.error("[musicas] falha ao ler observações:", erro);
-		return { faixas, observacoes: [] as Observacao[], bancoFora: true };
-	}
+	const [duracoes, observacoes] = await Promise.all([
+		duracoesDasFaixas(faixas),
+		listarObservacoes().catch((erro) => {
+			// Sem o banco as músicas continuam tocando; só as observações somem.
+			console.error("[musicas] falha ao ler observações:", erro);
+			return null;
+		}),
+	]);
+	return { faixas, duracoes, observacoes: observacoes ?? ([] as Observacao[]), bancoFora: observacoes === null };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -241,7 +245,8 @@ function normalizar(texto: string): string {
 export default function Musicas() {
 	const [busca, setBusca] = useState("");
 	const [tocando, setTocando] = useState<string | null>(null);
-	const { faixas, observacoes, bancoFora } = useLoaderData<typeof loader>();
+	const { faixas, duracoes, observacoes, bancoFora } = useLoaderData<typeof loader>();
+	const total = useMemo(() => somarDuracoes(faixas, duracoes), [faixas, duracoes]);
 
 	const porFaixa = useMemo(() => {
 		const mapa = new Map<string, Observacao[]>();
@@ -265,6 +270,17 @@ export default function Musicas() {
 						<div aria-hidden className='oz-estrada !h-3 w-32 ![mask-image:none]' />
 						<p className='text-[#a3b2a9]'>
 							Todas as faixas do espetáculo, na ordem das cenas. Toque em uma música para ouvir e deixar a sua observação: se está ok ou o que precisa ajustar.
+						</p>
+						<p className='flex flex-wrap items-center gap-x-2 gap-y-1 text-sm'>
+							<span className='inline-flex items-center gap-1.5 rounded-full bg-[#e8c25a]/15 px-3 py-1 font-semibold text-[#e8c25a]'>
+								<Clock className='h-3.5 w-3.5' />
+								{total.segundos ? formatarTotal(total.segundos) : "—"} de música
+							</span>
+							<span className='text-[#a3b2a9]'>
+								{faixas.length} faixas
+								{faixas.some((f) => f.obs === "outra versão") && " · sem contar as outras versões"}
+								{total.faltam > 0 && ` · falta o tempo de ${total.faltam === 1 ? "1 faixa" : `${total.faltam} faixas`}`}
+							</span>
 						</p>
 					</header>
 
@@ -316,6 +332,9 @@ export default function Musicas() {
 													)}
 												</span>
 												{resumo && <Selo tipo={resumo.situacao} contador={resumo.pendentes} />}
+												{duracoes[f.drive] !== undefined && (
+													<span className='shrink-0 text-sm tabular-nums text-[#a3b2a9]'>{formatarDuracao(duracoes[f.drive])}</span>
+												)}
 												<span
 													className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
 														aberta ? "bg-[#e8c25a] text-[#060b09]" : "bg-[#2fd28c] text-[#060b09]"

@@ -30,11 +30,11 @@ describe("faixasDaPasta", () => {
 			entrada("e", "Bruxa &amp; Cia.mp3", "audio/mpeg"),
 		].join("");
 		expect(faixasDaPasta(html)).toEqual([
-			{ numero: "08", nome: "Camponesa", drive: "a" },
-			{ numero: "18", nome: "Leoa", drive: "b" },
-			{ numero: "18.1", nome: "Leoa", drive: "b2", obs: "outra versão" },
-			{ numero: "31", nome: "Camila", drive: "c" },
-			{ numero: "", nome: "Bruxa & Cia", drive: "e" },
+			{ numero: "08", nome: "Camponesa", drive: "a", modificado: "4:54 am" },
+			{ numero: "18", nome: "Leoa", drive: "b", modificado: "4:54 am" },
+			{ numero: "18.1", nome: "Leoa", drive: "b2", modificado: "4:54 am", obs: "outra versão" },
+			{ numero: "31", nome: "Camila", drive: "c", modificado: "4:54 am" },
+			{ numero: "", nome: "Bruxa & Cia", drive: "e", modificado: "4:54 am" },
 		]);
 	});
 
