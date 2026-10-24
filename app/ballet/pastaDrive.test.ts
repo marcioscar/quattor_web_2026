@@ -19,7 +19,7 @@ describe("lerNomeArquivo", () => {
 });
 
 describe("faixasDaPasta", () => {
-	it("ordena pelo número, ignora subpasta e não-áudio, marca a outra versão", () => {
+	it("ordena pelo número, ignora subpasta e não-áudio, marca a outra versão só com o mesmo nome", () => {
 		const html = [
 			entrada("c", "31 - camila.m4a"),
 			entrada("pasta", "Antigas", "folder", "https://drive.google.com/drive/folders/pasta"),
@@ -27,10 +27,14 @@ describe("faixasDaPasta", () => {
 			entrada("b2", "18.1 - Leoa.m4a"),
 			entrada("a", "8 - camponesa.m4a"),
 			entrada("b", "18 - Leoa.m4a"),
+			entrada("d", "17 - Latinhas.m4a"),
+			entrada("d2", "17.1 - Latinhas solo.m4a"),
 			entrada("e", "Bruxa &amp; Cia.mp3", "audio/mpeg"),
 		].join("");
 		expect(faixasDaPasta(html)).toEqual([
 			{ numero: "08", nome: "Camponesa", drive: "a", modificado: "4:54 am" },
+			{ numero: "17", nome: "Latinhas", drive: "d", modificado: "4:54 am" },
+			{ numero: "17.1", nome: "Latinhas solo", drive: "d2", modificado: "4:54 am" },
 			{ numero: "18", nome: "Leoa", drive: "b", modificado: "4:54 am" },
 			{ numero: "18.1", nome: "Leoa", drive: "b2", modificado: "4:54 am", obs: "outra versão" },
 			{ numero: "31", nome: "Camila", drive: "c", modificado: "4:54 am" },

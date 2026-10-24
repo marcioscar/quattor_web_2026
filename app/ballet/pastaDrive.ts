@@ -38,7 +38,10 @@ function ordemDoNumero(numero: string): number {
 	return numero ? Number(numero) : Number.POSITIVE_INFINITY;
 }
 
-/** Faixas de áudio da pasta, ordenadas pelo número; "18.1" ao lado de "18" vira "outra versão". */
+/**
+ * Faixas de áudio da pasta, ordenadas pelo número. "18.1" com o mesmo nome da
+ * "18" vira "outra versão"; com nome diferente ("Cena" × "Cena + Solo") é outra música.
+ */
 export function faixasDaPasta(html: string): Faixa[] {
 	const faixas: Faixa[] = [];
 	const entrada = /<div class="flip-entry" id="entry-([\w-]+)"[\s\S]*?<a href="([^"]*)"[\s\S]*?<img src="[^"]*\/type\/([^"]+)"[\s\S]*?<div class="flip-entry-title">([\s\S]*?)<\/div>(?:<\/a><\/div><div class="flip-entry-last-modified"><div>([^<]*))?/g;
@@ -53,10 +56,10 @@ export function faixasDaPasta(html: string): Faixa[] {
 		(a, b) => ordemDoNumero(a.numero) - ordemDoNumero(b.numero) || a.nome.localeCompare(b.nome, "pt-BR"),
 	);
 
-	const numeros = new Set(faixas.map((f) => f.numero));
+	const nomes = new Map(faixas.map((f) => [f.numero, f.nome]));
 	for (const f of faixas) {
 		const base = f.numero.split(".")[0];
-		if (f.numero.includes(".") && numeros.has(base)) f.obs = "outra versão";
+		if (f.numero.includes(".") && nomes.get(base) === f.nome) f.obs = "outra versão";
 	}
 	return faixas;
 }
