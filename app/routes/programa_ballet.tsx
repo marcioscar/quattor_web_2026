@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { ESPETACULO } from "../ballet/espetaculo";
-import { cenasDaBailarina, EQUIPE, ELENCO, ehCena, normalizarNome, PROGRAMA, RASCUNHO } from "../ballet/programa";
+import { cenasDaBailarina, cenasDoLugar, EQUIPE, ELENCO, ehCena, normalizarNome, PROGRAMA, RASCUNHO } from "../ballet/programa";
 import estilos from "../ballet/programa.css?url";
 import type { Route } from "./+types/programa_ballet";
 
@@ -84,6 +84,14 @@ export default function ProgramaBallet() {
 				<section id='historia'>
 					<p className='eyebrow'>A história</p>
 					<h2>Siga a estrada de tijolos amarelos</h2>
+					<img
+						className='ilustracao'
+						src='/espetaculo/oz/abertura.webp'
+						alt='Dorothy, o Espantalho, a Mulher de Lata e a Leoa Medrosa na estrada de tijolos amarelos'
+						width={800}
+						height={800}
+						decoding='async'
+					/>
 					<p className='lead'>
 						Numa fazenda do Kansas, Dorothy sonha com um lugar além do arco-íris. Até que um tornado leva sua casa pelos ares e a deixa na
 						terra mágica de Oz.
@@ -154,6 +162,19 @@ export default function ProgramaBallet() {
 						{PROGRAMA.map((item, i) => {
 							if ("ato" in item) return <div key={i} className='ato'>{item.ato}</div>;
 							if ("intervalo" in item) return <div key={i} className='intervalo'>{item.intervalo}</div>;
+							if ("lugar" in item) {
+								const de = numero + 1;
+								const ate = numero + cenasDoLugar(PROGRAMA, i);
+								return (
+									<div key={i} className='lugar'>
+										<img src={`/espetaculo/oz/${item.imagem}.webp`} alt='' width={800} height={800} loading='lazy' decoding='async' />
+										<div className='lugar-nome'>
+											<small>{de === ate ? `Cena ${de}` : `Cenas ${de} a ${ate}`}</small>
+											<h3>{item.lugar}</h3>
+										</div>
+									</div>
+								);
+							}
 							numero++;
 							const casou = achadas.has(item);
 							return (

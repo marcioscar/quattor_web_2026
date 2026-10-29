@@ -26,24 +26,33 @@ export type Cena = {
 	apenasTitulo?: boolean;
 };
 
-export type ItemPrograma = Cena | { ato: string } | { intervalo: string };
+/** Lugar da história que abre um grupo de cenas; a ilustração fica em /espetaculo/oz/<imagem>.webp. */
+export type Lugar = { lugar: string; imagem: string };
+
+export type ItemPrograma = Cena | Lugar | { ato: string } | { intervalo: string };
 
 export const PROGRAMA: ItemPrograma[] = [
+	{ lugar: "Kansas", imagem: "kansas" },
 	{ titulo: "Narração e abertura das cortinas", faixas: ["01"], nomes: [] },
 	{ titulo: "Tia Anne e Tio Henry", sinopse: "Na fazenda, Dorothy vive com a Tia Anne e o Tio Henry, entre o trabalho no campo e os dias sempre iguais.", faixas: ["02"], nomes: [] },
 	{ titulo: "Solo Dorothy", sinopse: "Dorothy sonha com um lugar além do arco-íris, onde tudo seja colorido e cheio de aventura.", faixas: ["03"], nomes: [] },
+	{ lugar: "O tornado", imagem: "tornado" },
 	{ titulo: "A Tempestade", sinopse: "Um tornado atravessa o Kansas e leva Dorothy, com casa e tudo, para muito longe.", faixas: ["04"], nomes: [] },
 	{ titulo: "Dorothy no Mundo de Oz", sinopse: "Dorothy desperta numa terra encantada e descobre que não está mais no Kansas.", faixas: ["05"], nomes: [] },
+	{ lugar: "A terra de Oz", imagem: "oz" },
 	{ titulo: "Elfas", sinopse: "As elfas, pequenas moradoras de Oz, aparecem curiosas para conhecer a visitante.", faixas: ["06"], nomes: [] },
 	{ titulo: "Papoulas", sinopse: "Campos de papoulas florescem e enchem a terra de Oz de cor.", faixas: ["07"], nomes: [] },
 	{ titulo: "Camponesa", sinopse: "Uma camponesa de Oz recebe Dorothy com a alegria do lugar.", faixas: ["08"], nomes: [] },
+	{ lugar: "As bruxas", imagem: "bruxas" },
 	{ titulo: "Amigas e amigo da Bruxa Boa", sinopse: "Os amigos da Bruxa Boa anunciam que ela está chegando.", faixas: ["09"], nomes: [] },
 	{ titulo: "Bruxa Boa", sinopse: "A Bruxa Boa surge, luminosa, para dar as boas-vindas a Dorothy.", faixas: ["10"], nomes: [] },
 	{ titulo: "Bruxa Boa, Bruxa Má e os Sapatinhos Vermelhos", sinopse: "A Bruxa Má quer os sapatinhos vermelhos, mas a Bruxa Boa os entrega a Dorothy, que agora precisa protegê-los.", faixas: ["11"], nomes: [] },
+	{ lugar: "O milharal", imagem: "milharal" },
 	{ titulo: "Estrada de Tijolos Amarelos", sinopse: "Para voltar para casa, Dorothy deve seguir a estrada de tijolos amarelos até a Cidade das Esmeraldas.", faixas: ["12"], nomes: [] },
 	{ titulo: "Milharal", sinopse: "No caminho, a estrada passa por um grande milharal.", faixas: ["13"], nomes: [] },
 	{ titulo: "Espantalho", sinopse: "No milharal, Dorothy encontra o Espantalho, que sonha em ter um cérebro, e ele se junta à viagem.", faixas: ["14"], nomes: [] },
 	{ titulo: "Espantalhinhas", sinopse: "As espantalhinhas dançam pelo milharal.", faixas: ["15"], nomes: [] },
+	{ lugar: "A floresta", imagem: "floresta" },
 	{ titulo: "Mulher de Lata", sinopse: "Parada e enferrujada na floresta, a Mulher de Lata volta a se mover e conta que deseja um coração.", faixas: ["16"], nomes: [] },
 	{ titulo: "Latinhas", sinopse: "As latinhas dançam ao som do metal.", faixas: ["17"], nomes: [] },
 	{
@@ -60,13 +69,16 @@ export const PROGRAMA: ItemPrograma[] = [
 		nomes: [],
 		conferir: "Juntei as faixas 19.1 e 19.2 numa cena só.",
 	},
+	{ lugar: "Cidade das Esmeraldas", imagem: "esmeraldas" },
 	{ titulo: "Dorothy e seus Amigos", sinopse: "Agora são quatro amigos, seguindo juntos pela estrada amarela.", faixas: ["20"], nomes: [] },
 	{ titulo: "Cidade das Esmeraldas", sinopse: "Enfim, as torres verdes da Cidade das Esmeraldas brilham no horizonte.", faixas: ["21"], nomes: [] },
 	{ titulo: "Corte da Cidade das Esmeraldas", sinopse: "A corte da Cidade das Esmeraldas recebe os viajantes com toda a sua pompa.", faixas: ["22"], nomes: [] },
 	{ titulo: "Dorothy e o Mágico de Oz", sinopse: "Diante do grande e poderoso Mágico de Oz, cada um faz o seu pedido.", faixas: ["23"], nomes: [] },
+	{ lugar: "O castelo da Bruxa Má", imagem: "castelo" },
 	{ titulo: "A Missão", sinopse: "O Mágico só atenderá os pedidos se o grupo vencer a Bruxa Má.", faixas: ["24"], nomes: [] },
 	{ titulo: "Abelhas Gigantes", sinopse: "A Bruxa Má manda um enxame de abelhas gigantes para deter os amigos.", faixas: ["25"], nomes: [] },
 	{ titulo: "As Bruxas, a Derrota da Bruxa Má e a Libertação", sinopse: "Os amigos enfrentam a Bruxa Má, ela é derrotada e quem vivia sob o seu domínio fica livre.", faixas: ["27"], nomes: [] },
+	{ lugar: "O grande final", imagem: "final" },
 	{ titulo: "O Mágico de Oz e sua história", sinopse: "Atrás da cortina, o Mágico revela quem realmente é e conta como chegou a Oz.", faixas: ["28"], nomes: [] },
 	{ titulo: "Os Presentes do Mágico", sinopse: "O Mágico entrega os presentes e mostra que o cérebro, o coração e a coragem sempre estiveram com eles.", faixas: ["29"], nomes: [] },
 	{ titulo: "Camila", faixas: ["30"], nomes: [], conferir: "Qual é o nome desta cena no programa?" },
@@ -97,6 +109,13 @@ export const EQUIPE: Array<[funcao: string, nome: string]> = [
 
 export function ehCena(item: ItemPrograma): item is Cena {
 	return "titulo" in item;
+}
+
+/** Quantas cenas vêm depois de cada lugar, até o próximo lugar, ato ou intervalo. */
+export function cenasDoLugar(itens: ItemPrograma[], indice: number): number {
+	let total = 0;
+	for (let i = indice + 1; i < itens.length && ehCena(itens[i]); i++) total++;
+	return total;
 }
 
 /** "Alice M." → "alice m."; tira acentos para a busca achar "Cecilia" em "Cecília". */
