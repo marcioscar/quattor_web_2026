@@ -84,6 +84,7 @@
 .prog .cena { display: grid; grid-template-columns: 44px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; transition: opacity 0.3s, border-color 0.3s; }
 .prog .cena .n { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font: 700 22px/1 var(--display); color: var(--bg); background: var(--gold); }
 .prog .cena h3 { margin: 2px 0; font: 700 23px/1.1 var(--display); text-transform: uppercase; letter-spacing: 0.02em; }
+.prog .cena .sinopse { margin: 6px 0 8px; font-size: 15px; line-height: 1.5; color: var(--text); opacity: 0.85; }
 .prog .cena .meta { color: var(--muted); font-size: 14px; margin-bottom: 10px; }
 .prog .cena .meta b { color: var(--emerald); font-weight: 500; }
 .prog .cena .conferir { margin-top: 10px; font-size: 13px; color: #ffb4bf; }

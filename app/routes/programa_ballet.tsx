@@ -85,12 +85,17 @@ export default function ProgramaBallet() {
 					<p className='eyebrow'>A história</p>
 					<h2>Siga a estrada de tijolos amarelos</h2>
 					<p className='lead'>
-						Levada por uma tempestade para a terra mágica de Oz, Dorothy precisa encontrar o caminho de volta para casa.
+						Numa fazenda do Kansas, Dorothy sonha com um lugar além do arco-íris. Até que um tornado leva sua casa pelos ares e a deixa na
+						terra mágica de Oz.
 					</p>
 					<p>
-						Pela estrada de tijolos amarelos ela faz três amigos: o Espantalho, que quer um cérebro, a Mulher de Lata, que quer um coração, e a
-						Leoa Medrosa, que quer coragem. Juntos, enfrentam a Bruxa Má até chegar à Cidade das Esmeraldas e descobrir que o que procuravam
-						sempre esteve dentro deles.
+						Lá ela conhece as elfas, os campos de papoulas e a Bruxa Boa, que lhe dá os sapatinhos vermelhos, para fúria da Bruxa Má. Para
+						voltar para casa, Dorothy precisa seguir a estrada de tijolos amarelos até a Cidade das Esmeraldas e pedir ajuda ao Mágico de Oz.
+					</p>
+					<p>
+						No caminho ela faz três amigos: o Espantalho, que quer um cérebro, a Mulher de Lata, que quer um coração, e a Leoa Medrosa, que
+						quer coragem. O Mágico só atende aos pedidos se eles vencerem a Bruxa Má. Juntos, enfrentam abelhas gigantes e a própria bruxa, e
+						descobrem que o que procuravam sempre esteve dentro deles.
 					</p>
 					<div className='info'>
 						<div>
@@ -156,6 +161,7 @@ export default function ProgramaBallet() {
 									<div className='n'>{numero}</div>
 									<div>
 										<h3>{item.titulo}</h3>
+										{item.sinopse && <p className='sinopse'>{item.sinopse}</p>}
 										{(item.turma || item.estilo || RASCUNHO) && (
 											<div className='meta'>
 												<b>{item.turma ?? (RASCUNHO ? "Turma a definir" : "")}</b>
