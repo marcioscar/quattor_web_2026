@@ -27,7 +27,7 @@ export type Cena = {
 export type ItemPrograma = Cena | { ato: string } | { intervalo: string };
 
 export const PROGRAMA: ItemPrograma[] = [
-	{ titulo: "Narração e abertura das cortinas", sinopse: "A narração nos leva até uma fazenda no Kansas, onde começa a nossa história.", faixas: ["01"], nomes: [] },
+	{ titulo: "Narração e abertura das cortinas", faixas: ["01"], nomes: [] },
 	{ titulo: "Tia Anne e Tio Henry", sinopse: "Na fazenda, Dorothy vive com a Tia Anne e o Tio Henry, entre o trabalho no campo e os dias sempre iguais.", faixas: ["02"], nomes: [] },
 	{ titulo: "Solo Dorothy", sinopse: "Dorothy sonha com um lugar além do arco-íris, onde tudo seja colorido e cheio de aventura.", faixas: ["03"], nomes: [] },
 	{ titulo: "A Tempestade", sinopse: "Um tornado atravessa o Kansas e leva Dorothy, com casa e tudo, para muito longe.", faixas: ["04"], nomes: [] },
