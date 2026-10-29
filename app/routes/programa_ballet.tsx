@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ESPETACULO } from "../ballet/espetaculo";
 import { cenasDaBailarina, EQUIPE, ELENCO, ehCena, normalizarNome, PROGRAMA, RASCUNHO } from "../ballet/programa";
 import estilos from "../ballet/programa.css?url";
@@ -7,7 +7,6 @@ import type { Route } from "./+types/programa_ballet";
 const WHATSAPP =
 	"https://wa.me/5561993190568?text=" +
 	encodeURIComponent("Olá! Vi o programa do Mágico de Oz e quero agendar uma aula experimental de ballet.");
-const CHAVE_TEATRO = "oz-teatro";
 
 export const links: Route.LinksFunction = () => [
 	{
@@ -33,27 +32,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function ProgramaBallet() {
 	const [busca, setBusca] = useState("");
-	const [teatro, setTeatro] = useState(false);
 	const lista = useRef<HTMLDivElement>(null);
-
-	// Preferência lembrada só neste aparelho; lida depois da hidratação.
-	useEffect(() => {
-		try {
-			setTeatro(localStorage.getItem(CHAVE_TEATRO) === "1");
-		} catch {
-			// navegador sem armazenamento: começa sem o modo teatro
-		}
-	}, []);
-
-	function alternarTeatro() {
-		const ligado = !teatro;
-		setTeatro(ligado);
-		try {
-			localStorage.setItem(CHAVE_TEATRO, ligado ? "1" : "0");
-		} catch {
-			// segue funcionando, só não lembra na próxima visita
-		}
-	}
 
 	const termo = normalizarNome(busca);
 	const filtrando = termo.length >= 2;
@@ -67,7 +46,7 @@ export default function ProgramaBallet() {
 	let numero = 0;
 
 	return (
-		<div className={`prog${teatro ? " teatro" : ""}`}>
+		<div className='prog'>
 			{RASCUNHO && <div className='rascunho'>Rascunho · turmas, bailarinas e equipe ainda por preencher</div>}
 
 			<header className='hero'>
@@ -98,17 +77,6 @@ export default function ProgramaBallet() {
 						<a href='#equipe'>Equipe</a>
 						<a href='#quattor'>Quattor</a>
 					</div>
-					<button
-						type='button'
-						className='teatro-btn'
-						aria-pressed={teatro}
-						onClick={alternarTeatro}
-						title='Diminui o brilho para não incomodar a plateia'>
-						<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-							<path d='M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z' />
-						</svg>
-						Modo teatro
-					</button>
 				</div>
 			</nav>
 

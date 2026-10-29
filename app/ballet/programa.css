@@ -20,9 +20,7 @@
 	color: var(--text);
 	font: 16px/1.55 var(--body);
 	-webkit-font-smoothing: antialiased;
-	transition: filter 0.4s;
 }
-.prog.teatro { filter: brightness(0.55) saturate(0.8); }
 .prog img { display: block; max-width: 100%; }
 .prog a { color: inherit; }
 
@@ -50,15 +48,12 @@
 
 /* ---------- Navegação ---------- */
 .prog .secoes { position: sticky; top: 0; z-index: 10; background: rgba(6, 11, 9, 0.82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
-.prog .secoes .wrap { display: flex; align-items: center; gap: 4px; max-width: 720px; margin: 0 auto; padding: 8px 8px 8px 16px; }
+.prog .secoes .wrap { display: flex; align-items: center; gap: 4px; max-width: 720px; margin: 0 auto; padding: 8px 16px; }
 .prog .secoes .links { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1; }
 .prog .secoes .links::-webkit-scrollbar { display: none; }
 .prog .secoes a { flex: none; text-decoration: none; font: 600 15px/1 var(--display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 10px; border-radius: 999px; }
 .prog .secoes a:hover,
 .prog .secoes a:focus-visible { color: var(--text); background: var(--surface-2); }
-.prog .teatro-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font: 500 13px/1 var(--body); padding: 9px 12px; border-radius: 999px; cursor: pointer; }
-.prog .teatro-btn[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
-.prog .teatro-btn svg { width: 16px; height: 16px; }
 
 /* ---------- Seções ---------- */
 .prog main { max-width: 720px; margin: 0 auto; padding: 0 16px 48px; }
