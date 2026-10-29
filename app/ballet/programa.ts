@@ -22,6 +22,8 @@ export type Cena = {
 	estilo?: string;
 	nomes: string[];
 	conferir?: string;
+	/** Mostra só o número e o título, sem turma nem bailarinas. */
+	apenasTitulo?: boolean;
 };
 
 export type ItemPrograma = Cena | { ato: string } | { intervalo: string };
@@ -68,7 +70,7 @@ export const PROGRAMA: ItemPrograma[] = [
 	{ titulo: "O Mágico de Oz e sua história", sinopse: "Atrás da cortina, o Mágico revela quem realmente é e conta como chegou a Oz.", faixas: ["28"], nomes: [] },
 	{ titulo: "Os Presentes do Mágico", sinopse: "O Mágico entrega os presentes e mostra que o cérebro, o coração e a coragem sempre estiveram com eles.", faixas: ["29"], nomes: [] },
 	{ titulo: "Camila", faixas: ["30"], nomes: [], conferir: "Qual é o nome desta cena no programa?" },
-	{ titulo: "Agradecimentos", faixas: ["31"], turma: "Todo o elenco", nomes: [] },
+	{ titulo: "Agradecimentos", faixas: ["31"], nomes: [], apenasTitulo: true },
 ];
 
 /** Personagem, quem dança (vazio = a definir), cor da faixa lateral. */

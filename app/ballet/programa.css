@@ -81,8 +81,10 @@
 /* ---------- Programa ---------- */
 .prog .ato { font: 700 22px/1 var(--display); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 28px 0 12px; display: flex; align-items: center; gap: 12px; }
 .prog .ato::after { content: ""; flex: 1; height: 1px; background: var(--line); }
-.prog .cena { display: grid; grid-template-columns: 44px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; transition: opacity 0.3s, border-color 0.3s; }
-.prog .cena .n { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font: 700 22px/1 var(--display); color: var(--bg); background: var(--gold); }
+.prog .cena { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; transition: opacity 0.3s, border-color 0.3s; }
+.prog .cena .n { position: relative; z-index: 2; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font: 700 22px/1 var(--display); color: var(--bg); background: var(--gold); }
+/* Estrada de tijolos amarelos ligando uma cena à seguinte */
+.prog .cena:not(:last-of-type)::before { content: ""; position: absolute; z-index: 1; left: 33px; top: 60px; bottom: -27px; width: 10px; border-radius: 2px; background: repeating-linear-gradient(to bottom, var(--gold) 0 7px, transparent 7px 10px); opacity: 0.5; pointer-events: none; }
 .prog .cena h3 { margin: 2px 0; font: 700 23px/1.1 var(--display); text-transform: uppercase; letter-spacing: 0.02em; }
 .prog .cena .sinopse { margin: 6px 0 8px; font-size: 15px; line-height: 1.5; color: var(--text); opacity: 0.85; }
 .prog .cena .meta { color: var(--muted); font-size: 14px; margin-bottom: 10px; }

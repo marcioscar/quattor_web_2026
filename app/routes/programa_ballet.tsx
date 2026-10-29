@@ -162,21 +162,25 @@ export default function ProgramaBallet() {
 									<div>
 										<h3>{item.titulo}</h3>
 										{item.sinopse && <p className='sinopse'>{item.sinopse}</p>}
-										{(item.turma || item.estilo || RASCUNHO) && (
-											<div className='meta'>
-												<b>{item.turma ?? (RASCUNHO ? "Turma a definir" : "")}</b>
-												{item.estilo && ` · ${item.estilo}`}
-												{RASCUNHO && ` · música ${item.faixas.join(" e ")}`}
-											</div>
+										{!item.apenasTitulo && (
+											<>
+												{(item.turma || item.estilo || RASCUNHO) && (
+													<div className='meta'>
+														<b>{item.turma ?? (RASCUNHO ? "Turma a definir" : "")}</b>
+														{item.estilo && ` · ${item.estilo}`}
+														{RASCUNHO && ` · música ${item.faixas.join(" e ")}`}
+													</div>
+												)}
+												<div className='nomes'>
+													{item.nomes.map((nome) => (
+														<span key={nome} className={casou && normalizarNome(nome).includes(termo) ? "achou" : ""}>
+															{nome}
+														</span>
+													))}
+													{RASCUNHO && item.nomes.length === 0 && <span className='vazio'>bailarinas a preencher</span>}
+												</div>
+											</>
 										)}
-										<div className='nomes'>
-											{item.nomes.map((nome) => (
-												<span key={nome} className={casou && normalizarNome(nome).includes(termo) ? "achou" : ""}>
-													{nome}
-												</span>
-											))}
-											{RASCUNHO && item.nomes.length === 0 && <span className='vazio'>bailarinas a preencher</span>}
-										</div>
 										{RASCUNHO && item.conferir && <p className='conferir'>Conferir: {item.conferir}</p>}
 									</div>
 								</article>
