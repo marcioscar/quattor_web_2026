@@ -50,7 +50,7 @@ export default function Ballet() {
 						<img
 							src='/espetaculo/titulo.webp'
 							alt={ESPETACULO.titulo}
-							className='oz-surgir oz-titulo mx-auto mt-2 w-[min(70%,360px)]'
+							className='oz-surgir oz-titulo mx-auto mt-[calc(min(70%,360px)*-0.18)] w-[min(70%,360px)]'
 						/>
 						<p
 							className='oz-surgir mt-5 text-xl font-bold uppercase tracking-wide sm:text-2xl'

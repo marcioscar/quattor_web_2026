@@ -88,7 +88,7 @@ export default function BannerBallet() {
 					<img
 						src='/espetaculo/titulo.webp'
 						alt={ESPETACULO.titulo}
-						className='oz-brilho mx-auto mt-2 w-2/3 sm:mx-0 sm:w-1/2'
+						className='oz-brilho mx-auto -mt-[12%] w-2/3 sm:mx-0 sm:-mt-[9%] sm:w-1/2'
 					/>
 				</div>
 
