@@ -55,7 +55,7 @@ export default function ProgramaBallet() {
 					<img src='/espetaculo/fundo_retrato.webp' alt='' fetchPriority='high' />
 				</picture>
 				<div className='hero-inner'>
-					<img className='espetaculo' src='/espetaculo/espetaculo.webp' alt='Espetáculo de Ballet' />
+					<img className='espetaculo' src='/espetaculo/espetaculo.webp' alt='Espetáculo de Ballet Clássico' />
 					<h1 style={{ margin: 0 }}>
 						<img className='titulo' src='/espetaculo/titulo.webp' alt={ESPETACULO.titulo} />
 					</h1>

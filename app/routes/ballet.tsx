@@ -43,8 +43,8 @@ export default function Ballet() {
 					<div className='mx-auto w-full max-w-3xl px-4 pb-12 text-center'>
 						<img
 							src='/espetaculo/espetaculo.webp'
-							alt='Espetáculo de Ballet'
-							className='oz-surgir mx-auto w-[min(80%,440px)]'
+							alt='Espetáculo de Ballet Clássico'
+							className='oz-surgir mx-auto w-[min(96%,620px)]'
 							style={{ "--atraso": "0.15s" } as React.CSSProperties}
 						/>
 						<img

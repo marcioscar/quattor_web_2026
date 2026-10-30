@@ -84,7 +84,7 @@ export default function BannerBallet() {
 							</p>
 						)}
 					</div>
-					<img src='/espetaculo/espetaculo.webp' alt='Espetáculo de Ballet' className='mx-auto w-full sm:mx-0' />
+					<img src='/espetaculo/espetaculo.webp' alt='Espetáculo de Ballet Clássico' className='mx-auto w-full sm:mx-0' />
 					<img
 						src='/espetaculo/titulo.webp'
 						alt={ESPETACULO.titulo}
