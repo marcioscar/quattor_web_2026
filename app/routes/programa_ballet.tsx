@@ -47,7 +47,7 @@ export default function ProgramaBallet() {
 
 	return (
 		<div className='prog'>
-			{RASCUNHO && <div className='rascunho'>Rascunho · turmas, bailarinas e equipe ainda por preencher</div>}
+			{RASCUNHO && <div className='rascunho'>Rascunho · turmas, elenco e equipe ainda por preencher</div>}
 
 			<header className='hero'>
 				<picture>
@@ -125,7 +125,7 @@ export default function ProgramaBallet() {
 					<p className='eyebrow'>Ordem das apresentações</p>
 					<h2>Programa</h2>
 					<div className='busca'>
-						<label htmlFor='q'>Encontre sua bailarina</label>
+						<label htmlFor='q'>Encontre quem você veio aplaudir</label>
 						<svg className='lupa' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round'>
 							<circle cx='11' cy='11' r='7' />
 							<path d='m20 20-3.5-3.5' />
@@ -198,7 +198,7 @@ export default function ProgramaBallet() {
 															{nome}
 														</span>
 													))}
-													{RASCUNHO && item.nomes.length === 0 && <span className='vazio'>bailarinas a preencher</span>}
+													{RASCUNHO && item.nomes.length === 0 && <span className='vazio'>elenco a preencher</span>}
 												</div>
 											</>
 										)}
@@ -239,8 +239,8 @@ export default function ProgramaBallet() {
 				<section>
 					<p className='eyebrow'>Palavra da direção</p>
 					<blockquote>
-						Cada passo deste espetáculo foi ensaiado com dedicação durante o ano inteiro. Assim como Dorothy, nossas bailarinas descobriram que
-						coragem, coração e inteligência já estavam com elas. Obrigada por estarem aqui.
+						Cada passo deste espetáculo foi ensaiado com dedicação durante o ano inteiro. Assim como Dorothy, nossas bailarinas e nossos bailarinos descobriram que
+						coragem, coração e inteligência sempre estiveram com eles. Obrigada por estarem aqui.
 						<cite>Direção artística · Quattor Academia</cite>
 					</blockquote>
 				</section>
