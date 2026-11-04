@@ -81,7 +81,7 @@ export const PROGRAMA: ItemPrograma[] = [
 	{ lugar: "O grande final", imagem: "final" },
 	{ titulo: "O Mágico de Oz e sua história", sinopse: "Atrás da cortina, o Mágico revela quem realmente é e conta como chegou a Oz.", faixas: ["28"], nomes: [] },
 	{ titulo: "Os Presentes do Mágico", sinopse: "O Mágico entrega os presentes e mostra que o cérebro, o coração e a coragem sempre estiveram com eles.", faixas: ["29"], nomes: [] },
-	{ titulo: "Camila", faixas: ["30"], nomes: [], conferir: "Qual é o nome desta cena no programa?" },
+	{ titulo: "Volta para casa", sinopse: "Com a ajuda dos sapatinhos vermelhos, Dorothy se despede dos amigos e volta para casa, no Kansas.", faixas: ["30"], nomes: [] },
 	{ titulo: "Agradecimentos", faixas: ["31"], nomes: [], apenasTitulo: true },
 ];
 
