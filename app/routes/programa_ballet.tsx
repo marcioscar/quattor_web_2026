@@ -222,11 +222,6 @@ export default function ProgramaBallet() {
 													</div>
 												)}
 												{item.nomes.length > 0 && <NomesDaCena nomes={item.nomes} termo={termo} casou={casou} />}
-												{RASCUNHO && item.nomes.length === 0 && !item.semNomes && (
-													<div className='nomes'>
-														<span className='vazio'>elenco a preencher</span>
-													</div>
-												)}
 											</>
 										)}
 										{RASCUNHO && item.conferir && <p className='conferir'>Conferir: {item.conferir}</p>}
