@@ -107,11 +107,9 @@ export const ELENCO: Array<[personagem: string, bailarinas: Pessoa[], cor: strin
 
 /** Função, nome (vazio = a definir). */
 export const EQUIPE: Array<[funcao: string, nome: string]> = [
-	["Direção artística", ""],
-	["Coreografia", ""],
-	["Figurino", ""],
-	["Cenário e iluminação", ""],
-	["Produção", "Quattor Academia"],
+	["Direção artística", "Warley Castro"],
+	["Coreógrafos e professores", "Marcelo, Mylla, Delfina e Maria Nauane"],
+	["Realização", "Quattor Academia"],
 ];
 
 export function ehCena(item: ItemPrograma): item is Cena {
