@@ -260,10 +260,11 @@ export default function ProgramaBallet() {
 					<p className='eyebrow'>Por trás das cortinas</p>
 					<h2>Equipe</h2>
 					<ul className='equipe'>
-						{EQUIPE.map(([funcao, nome]) => (
+						{/* Só as funções já preenchidas; a página é pública */}
+						{EQUIPE.filter(([, nome]) => nome).map(([funcao, nome]) => (
 							<li key={funcao}>
 								<span>{funcao}</span>
-								<span className={nome ? "" : "a-definir"}>{nome || "a definir"}</span>
+								<span>{nome}</span>
 							</li>
 						))}
 					</ul>

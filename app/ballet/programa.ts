@@ -11,7 +11,7 @@
  * com nome completo (só os nomes do meio abreviados), como no telão.
  */
 
-export const RASCUNHO = true;
+export const RASCUNHO = false;
 
 export type Sessao = "16h30" | "19h";
 
@@ -49,19 +49,19 @@ export const PROGRAMA: ItemPrograma[] = [
 	{ lugar: "A terra de Oz", imagem: "oz" },
 	{ titulo: "Elfas", sinopse: "As elfas, pequenas moradoras de Oz, aparecem curiosas para conhecer a visitante.", faixas: ["06"], nomes: [{ nome: "Lis Sales de Calçado" }, { nome: "Isis Sales de Calçado" }] },
 	{ titulo: "Papoulas", sinopse: "Campos de papoulas florescem e enchem a terra de Oz de cor.", faixas: ["07"], nomes: [{ nome: "Giovanna Rodrigues da Mota" }, { nome: "Ana Luiza A. Farias" }] },
-	{ titulo: "Camponesa", sinopse: "Uma camponesa de Oz recebe Dorothy com a alegria do lugar.", faixas: ["08"], nomes: [{ nome: "Larissa Stefane" }, { nome: "Débora Ester" }, { nome: "Karine Mayara" }, { nome: "Jéssica Cristina" }, { nome: "Mariana" }] },
+	{ titulo: "Camponesa", sinopse: "Uma camponesa de Oz recebe Dorothy com a alegria do lugar.", faixas: ["08"], nomes: [{ nome: "Larissa Stefane" }, { nome: "Débora Ester" }, { nome: "Karine Mayara" }, { nome: "Jéssica Cristina" }] },
 	{ lugar: "As bruxas", imagem: "bruxas" },
-	{ titulo: "Amigas e amigo da Bruxa Boa", sinopse: "Os amigos da Bruxa Boa anunciam que ela está chegando.", faixas: ["09"], nomes: [{ nome: "Dayanne" }, { nome: "Val" }, { nome: "Vanessa Vitória" }, { nome: "Paulo Arthur" }, { nome: "Míriam Carneiro" }] },
+	{ titulo: "Amigas e amigo da Bruxa Boa", sinopse: "Os amigos da Bruxa Boa anunciam que ela está chegando.", faixas: ["09"], nomes: [{ nome: "Vanessa Vitória" }, { nome: "Paulo Arthur" }, { nome: "Míriam Carneiro" }] },
 	{ titulo: "Bruxa Boa", sinopse: "A Bruxa Boa surge, luminosa, para dar as boas-vindas a Dorothy.", faixas: ["10"], nomes: [{ nome: "Maria Eduarda Takao", papel: "Bruxa Boa", sessao: "16h30" }, { nome: "Alice de Oliveira", papel: "Bruxa Boa", sessao: "19h" }] },
 	{ titulo: "Bruxa Boa, Bruxa Má e os Sapatinhos Vermelhos", sinopse: "A Bruxa Má quer os sapatinhos vermelhos, mas a Bruxa Boa os entrega a Dorothy, que agora precisa protegê-los.", faixas: ["11"], nomes: [], semNomes: true },
 	{ lugar: "O milharal", imagem: "milharal" },
-	{ titulo: "Estrada de Tijolos Amarelos", sinopse: "Para voltar para casa, Dorothy deve seguir a estrada de tijolos amarelos até a Cidade das Esmeraldas.", faixas: ["12"], nomes: [{ nome: "Dhennyfer" }, { nome: "Beatriz Menon" }, { nome: "Amanda Porto" }, { nome: "Fernanda Bezzi" }, { nome: "Marina Coimbra" }, { nome: "Camila Silva Carneiro" }, { nome: "Larissa Drumont" }] },
+	{ titulo: "Estrada de Tijolos Amarelos", sinopse: "Para voltar para casa, Dorothy deve seguir a estrada de tijolos amarelos até a Cidade das Esmeraldas.", faixas: ["12"], nomes: [{ nome: "Beatriz Menon" }, { nome: "Amanda Porto" }, { nome: "Fernanda Bezzi" }, { nome: "Marina Coimbra" }, { nome: "Camila Silva Carneiro" }, { nome: "Larissa Drumont" }] },
 	{ titulo: "Milharal", sinopse: "No caminho, a estrada passa por um grande milharal.", faixas: ["13"], nomes: [{ nome: "Nicole Gabrielly" }, { nome: "Amanda Lira" }, { nome: "Jessika Benalia" }, { nome: "Luma Bergmann" }, { nome: "Natalie Santos" }, { nome: "Valentina Fuzo" }, { nome: "Laura Oliveira" }, { nome: "Ana Júlia Dourado" }, { nome: "Alice de Oliveira" }, { nome: "Fernanda Bezzi" }, { nome: "Ana Paula Araujo" }, { nome: "Beatriz Menon" }] },
 	{ titulo: "Espantalha", sinopse: "No milharal, Dorothy encontra a Espantalha, que sonha em ter um cérebro, e ela se junta à viagem.", faixas: ["14"], nomes: [{ nome: "Sarah Emanuelle", papel: "Espantalha", sessao: "16h30" }, { nome: "Amanda Porto", papel: "Espantalha", sessao: "19h" }] },
 	{ titulo: "Espantalhinhas", sinopse: "As espantalhinhas dançam pelo milharal.", faixas: ["15"], nomes: [{ nome: "Maria Helena A. de Melo" }, { nome: "Ester Bernardi Conde" }, { nome: "Olívia Vieira Calgaro" }, { nome: "Julia Magalhães de Wilken" }, { nome: "Laura S. O. Lira" }, { nome: "Marina de Souza Martins" }] },
 	{ lugar: "A floresta", imagem: "floresta" },
 	{ titulo: "Mulher de Lata", sinopse: "Parada e enferrujada na floresta, a Mulher de Lata volta a se mover e conta que deseja um coração.", faixas: ["16"], nomes: [{ nome: "Julia Carneiro", papel: "Mulher de Lata", sessao: "16h30" }, { nome: "Fernanda Bezzi", papel: "Mulher de Lata", sessao: "19h" }] },
-	{ titulo: "Latinhas", sinopse: "As latinhas dançam ao som do metal.", faixas: ["17"], nomes: [{ nome: "Helena Vieira Sacchq" }, { nome: "Giovanna Bouson Claudio" }, { nome: "Helena Calis Cavalcante" }, { nome: "Isadora Calis de Freitas" }, { nome: "Maite Alves Oliveira" }, { nome: "Theodora Augusta Palazzio" }, { nome: "Ana Flor" }, { nome: "Teresa D'Avila A. Farias" }] },
+	{ titulo: "Latinhas", sinopse: "As latinhas dançam ao som do metal.", faixas: ["17"], nomes: [{ nome: "Giovanna Bouson Claudio" }, { nome: "Helena Calis Cavalcante" }, { nome: "Isadora Calis de Freitas" }, { nome: "Maite Alves Oliveira" }, { nome: "Theodora Augusta Palazzio" }, { nome: "Teresa D'Avila A. Farias" }] },
 	{
 		titulo: "Leoa Medrosa",
 		sinopse: "Com um rugido que não assusta ninguém, aparece a Leoa Medrosa, que quer encontrar sua coragem.",
@@ -78,7 +78,7 @@ export const PROGRAMA: ItemPrograma[] = [
 	},
 	{ lugar: "Cidade das Esmeraldas", imagem: "esmeraldas" },
 	{ titulo: "Dorothy e seus Amigos", sinopse: "Agora são quatro amigos, seguindo juntos pela estrada amarela.", faixas: ["20"], nomes: [{ nome: "Camila Silva Carneiro", papel: "Dorothy", sessao: "19h" }, { nome: "Maria Fernanda Bastos", papel: "Dorothy", sessao: "16h30" }, { nome: "Julia Carneiro", sessao: "16h30" }, { nome: "Fernanda Bezzi", sessao: "19h" }, { nome: "Sarah Emanuelle", sessao: "16h30" }, { nome: "Amanda Porto", sessao: "19h" }, { nome: "Ana Paula Araujo", sessao: "19h" }, { nome: "Laura Lemos", sessao: "16h30" }] },
-	{ titulo: "Cidade das Esmeraldas", sinopse: "Enfim, as torres verdes da Cidade das Esmeraldas brilham no horizonte.", faixas: ["21"], nomes: [{ nome: "Melissa Maciel" }, { nome: "Pâmela Nikole" }, { nome: "Marlua Correia" }, { nome: "Maria Eduarda C." }, { nome: "Eliane Timm" }, { nome: "Mariana da Silva" }, { nome: "Jessica Almeida" }] },
+	{ titulo: "Cidade das Esmeraldas", sinopse: "Enfim, as torres verdes da Cidade das Esmeraldas brilham no horizonte.", faixas: ["21"], nomes: [{ nome: "Melissa Maciel" }, { nome: "Pâmela Nikole" }, { nome: "Marlua Correia" }, { nome: "Eliane Timm" }, { nome: "Mariana da Silva" }, { nome: "Jessica Almeida" }] },
 	{ titulo: "Corte da Cidade das Esmeraldas", sinopse: "A corte da Cidade das Esmeraldas recebe os viajantes com toda a sua pompa.", faixas: ["22"], nomes: [{ nome: "Thais Franco" }, { nome: "Mariana Barbosa" }, { nome: "Manuela Silveira" }, { nome: "Sofia Santos" }, { nome: "Larissa Drumont" }, { nome: "Flavia Guimaraes" }, { nome: "Nicole Carpina" }, { nome: "Vanessa Farias" }] },
 	{ titulo: "Dorothy e a Mágica de Oz", sinopse: "Diante da grande e poderosa Mágica de Oz, cada um faz o seu pedido.", faixas: ["23"], nomes: [{ nome: "Camila Silva Carneiro", papel: "Dorothy", sessao: "19h" }, { nome: "Maria Fernanda Bastos", papel: "Dorothy", sessao: "16h30" }, { nome: "Beatriz Menon", papel: "Mágica de Oz" }] },
 	{ lugar: "O castelo da Bruxa Má", imagem: "castelo" },
