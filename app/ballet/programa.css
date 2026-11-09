@@ -93,6 +93,13 @@
 .prog .nomes { display: flex; flex-wrap: wrap; gap: 6px; }
 .prog .nomes span { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: #d9d4c4; }
 .prog .nomes span.achou { background: var(--gold); color: var(--bg); font-weight: 600; }
+.prog .nomes span em { font-style: normal; font-weight: 600; color: var(--gold); margin-left: 6px; }
+.prog .nomes span.achou em { color: inherit; }
+.prog .sessoes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.prog .sessoes > div:nth-child(3) { grid-column: 1 / -1; }
+.prog .sessoes small { display: block; margin-bottom: 6px; font: 600 11px/1 var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.prog .pers .quem { display: block; margin-top: 4px; }
+.prog .pers .quem small { display: block; font-size: 12px; color: var(--muted); }
 .prog .nomes span.vazio { background: transparent; border: 1px dashed var(--line); color: var(--muted); }
 .prog .filtrando .cena:not(.match) { opacity: 0.28; }
 .prog .filtrando .cena.match { border-color: var(--gold); }

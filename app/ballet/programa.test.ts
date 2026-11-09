@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { cenasDaBailarina, cenasDoLugar, ehCena, PROGRAMA, type ItemPrograma } from "./programa";
 
 describe("cenasDaBailarina", () => {
-	const kansas = { titulo: "Kansas", faixas: ["01"], nomes: ["Cecília B.", "Alice M."] };
-	const papoulas = { titulo: "Papoulas", faixas: ["07"], nomes: ["Alice M."] };
+	const kansas = { titulo: "Kansas", faixas: ["01"], nomes: [{ nome: "Cecília B." }, { nome: "Alice M." }] };
+	const papoulas = { titulo: "Papoulas", faixas: ["07"], nomes: [{ nome: "Alice M." }] };
 	const itens: ItemPrograma[] = [{ ato: "1º Ato" }, kansas, { intervalo: "Intervalo" }, papoulas];
 
 	it("acha sem acento e sem diferenciar maiúsculas", () => {

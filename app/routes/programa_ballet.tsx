@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { ESPETACULO } from "../ballet/espetaculo";
-import { cenasDaBailarina, cenasDoLugar, EQUIPE, ELENCO, ehCena, normalizarNome, PROGRAMA, RASCUNHO } from "../ballet/programa";
+import { cenasDaBailarina, cenasDoLugar, EQUIPE, ELENCO, ehCena, normalizarNome, PROGRAMA, RASCUNHO, type Pessoa } from "../ballet/programa";
 import estilos from "../ballet/programa.css?url";
 import type { Route } from "./+types/programa_ballet";
 
@@ -30,6 +30,35 @@ export function meta({}: Route.MetaArgs) {
 	];
 }
 
+const SESSOES = ESPETACULO.sessoes.map((s) => s.hora);
+const emOrdem = new Intl.Collator("pt-BR").compare;
+
+/** Nomes em ordem alfabética; se alguém tem sessão marcada, agrupa por sessão. */
+function NomesDaCena({ nomes, termo, casou }: { nomes: Pessoa[]; termo: string; casou: boolean }) {
+	const ordem = [...nomes].sort((a, b) => emOrdem(a.nome, b.nome));
+	const chips = (lista: Pessoa[]) =>
+		lista.map((p) => (
+			<span key={p.nome + (p.papel ?? "")} className={casou && normalizarNome(p.nome).includes(termo) ? "achou" : ""}>
+				{p.nome}
+				{p.papel && <em>{p.papel}</em>}
+			</span>
+		));
+	if (!ordem.some((p) => p.sessao)) return <div className='nomes'>{chips(ordem)}</div>;
+	const grupos: Array<[string, Pessoa[]]> = SESSOES.map((s) => [`Sessão das ${s}`, ordem.filter((p) => p.sessao === s)]);
+	const nasDuas = ordem.filter((p) => !p.sessao);
+	if (nasDuas.length) grupos.push(["Nas duas sessões", nasDuas]);
+	return (
+		<div className='sessoes'>
+			{grupos.map(([titulo, lista]) => (
+				<div key={titulo}>
+					<small>{titulo}</small>
+					<div className='nomes'>{chips(lista)}</div>
+				</div>
+			))}
+		</div>
+	);
+}
+
 export default function ProgramaBallet() {
 	const [busca, setBusca] = useState("");
 	const lista = useRef<HTMLDivElement>(null);
@@ -47,7 +76,7 @@ export default function ProgramaBallet() {
 
 	return (
 		<div className='prog'>
-			{RASCUNHO && <div className='rascunho'>Rascunho · turmas, elenco e equipe ainda por preencher</div>}
+			{RASCUNHO && <div className='rascunho'>Rascunho · turmas e equipe ainda por preencher</div>}
 
 			<header className='hero'>
 				<picture>
@@ -87,7 +116,7 @@ export default function ProgramaBallet() {
 					<img
 						className='ilustracao'
 						src='/espetaculo/oz/abertura.webp'
-						alt='Dorothy, o Espantalho, a Mulher de Lata e a Leoa Medrosa na estrada de tijolos amarelos'
+						alt='Dorothy, a Espantalha, a Mulher de Lata e a Leoa Medrosa na estrada de tijolos amarelos'
 						width={800}
 						height={800}
 						decoding='async'
@@ -98,11 +127,11 @@ export default function ProgramaBallet() {
 					</p>
 					<p>
 						Lá ela conhece as elfas, os campos de papoulas e a Bruxa Boa, que lhe dá os sapatinhos vermelhos, para fúria da Bruxa Má. Para
-						voltar para casa, Dorothy precisa seguir a estrada de tijolos amarelos até a Cidade das Esmeraldas e pedir ajuda ao Mágico de Oz.
+						voltar para casa, Dorothy precisa seguir a estrada de tijolos amarelos até a Cidade das Esmeraldas e pedir ajuda à Mágica de Oz.
 					</p>
 					<p>
-						No caminho ela faz três amigos: o Espantalho, que quer um cérebro, a Mulher de Lata, que quer um coração, e a Leoa Medrosa, que
-						quer coragem. O Mágico só atende aos pedidos se eles vencerem a Bruxa Má. Juntos, enfrentam abelhas gigantes e a própria bruxa, e
+						No caminho ela faz três amigos: a Espantalha, que quer um cérebro, a Mulher de Lata, que quer um coração, e a Leoa Medrosa, que
+						quer coragem. A Mágica só atende aos pedidos se eles vencerem a Bruxa Má. Juntos, enfrentam abelhas gigantes e a própria bruxa, e
 						descobrem que o que procuravam sempre esteve dentro deles.
 					</p>
 					<div className='info'>
@@ -185,21 +214,19 @@ export default function ProgramaBallet() {
 										{item.sinopse && <p className='sinopse'>{item.sinopse}</p>}
 										{!item.apenasTitulo && (
 											<>
-												{(item.turma || item.estilo || RASCUNHO) && (
+												{(item.turma || item.estilo) && (
 													<div className='meta'>
-														<b>{item.turma ?? (RASCUNHO ? "Turma a definir" : "")}</b>
-														{item.estilo && ` · ${item.estilo}`}
-														{RASCUNHO && ` · música ${item.faixas.join(" e ")}`}
+														{item.turma && <b>{item.turma}</b>}
+														{item.turma && item.estilo && " · "}
+														{item.estilo}
 													</div>
 												)}
-												<div className='nomes'>
-													{item.nomes.map((nome) => (
-														<span key={nome} className={casou && normalizarNome(nome).includes(termo) ? "achou" : ""}>
-															{nome}
-														</span>
-													))}
-													{RASCUNHO && item.nomes.length === 0 && <span className='vazio'>elenco a preencher</span>}
-												</div>
+												{item.nomes.length > 0 && <NomesDaCena nomes={item.nomes} termo={termo} casou={casou} />}
+												{RASCUNHO && item.nomes.length === 0 && !item.semNomes && (
+													<div className='nomes'>
+														<span className='vazio'>elenco a preencher</span>
+													</div>
+												)}
 											</>
 										)}
 										{RASCUNHO && item.conferir && <p className='conferir'>Conferir: {item.conferir}</p>}
@@ -214,10 +241,16 @@ export default function ProgramaBallet() {
 					<p className='eyebrow'>Personagens</p>
 					<h2>Elenco principal</h2>
 					<div className='elenco'>
-						{ELENCO.map(([personagem, bailarina, cor]) => (
+						{ELENCO.map(([personagem, bailarinas, cor]) => (
 							<div key={personagem} className='pers' style={{ "--c": cor } as React.CSSProperties}>
 								<b>{personagem}</b>
-								<span className={bailarina ? "" : "a-definir"}>{bailarina || "a definir"}</span>
+								{bailarinas.length === 0 && <span className='a-definir'>a definir</span>}
+								{bailarinas.map((p) => (
+									<span key={p.nome} className='quem'>
+										{p.nome}
+										{p.sessao && <small>sessão das {p.sessao}</small>}
+									</span>
+								))}
 							</div>
 						))}
 					</div>
