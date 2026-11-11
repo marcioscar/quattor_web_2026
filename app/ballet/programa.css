@@ -100,6 +100,16 @@
 .prog .fotos figure { position: relative; flex: none; width: min(100%, 300px); margin: 0; scroll-snap-align: start; }
 .prog .fotos.varias figure { width: min(72%, 240px); }
 .prog .fotos img { width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); }
+.prog .fotos button { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.prog .fotos button:focus-visible img { outline: 2px solid var(--gold); outline-offset: -2px; }
+/* Visor: foto em tela cheia, toque aproxima */
+.prog .visor { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; background: #030605; }
+.prog .visor .palco { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 64px 16px 0; }
+.prog .visor .palco img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; border-radius: 12px; }
+.prog .visor .rodape { display: flex; align-items: center; gap: 10px; padding: 12px 12px calc(14px + env(safe-area-inset-bottom, 0px)); }
+.prog .visor .rodape p { flex: 1; margin: 0; text-align: center; color: var(--text); font-weight: 600; }
+.prog .visor .rodape button, .prog .visor .fechar { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--surface-2); color: var(--text); font-size: 26px; line-height: 1; cursor: pointer; }
+.prog .visor .fechar { position: absolute; z-index: 2; top: calc(10px + env(safe-area-inset-top, 0px)); right: 12px; }
 .prog .fotos figcaption { position: absolute; left: 8px; bottom: 8px; right: 8px; width: fit-content; padding: 5px 10px; border-radius: 999px; background: rgba(6, 11, 9, 0.82); color: var(--text); font-size: 12px; font-weight: 600; }
 .prog .nomes { display: flex; flex-wrap: wrap; gap: 6px; }
 .prog .nomes span { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: #d9d4c4; }

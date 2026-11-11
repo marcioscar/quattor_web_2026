@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ESPETACULO } from "../ballet/espetaculo";
-import { cenasDaBailarina, EQUIPE, ELENCO, ehCena, normalizarNome, PROGRAMA, RASCUNHO, type Pessoa } from "../ballet/programa";
+import { cenasDaBailarina, EQUIPE, ELENCO, ehCena, normalizarNome, PROGRAMA, RASCUNHO, type Foto, type Pessoa } from "../ballet/programa";
 import estilos from "../ballet/programa.css?url";
 import type { Route } from "./+types/programa_ballet";
 
@@ -62,7 +62,57 @@ function NomesDaCena({ nomes, termo, casou }: { nomes: Pessoa[]; termo: string; 
 /** Cada lugar da história é uma parada na estrada de tijolos amarelos. */
 const TOTAL_PARADAS = PROGRAMA.filter((item) => "lugar" in item).length;
 
+type FotosAbertas = { fotos: Foto[]; indice: number; titulo: string };
+
+/** Foto inteira em tela cheia; setas passam para as outras fotos da cena. */
+function VisorDeFotos({ aberta, fechar }: { aberta: FotosAbertas; fechar: () => void }) {
+	const [indice, setIndice] = useState(aberta.indice);
+	const foto = aberta.fotos[indice];
+	const total = aberta.fotos.length;
+	const ir = (passo: number) => {
+		setIndice((i) => (i + passo + total) % total);
+	};
+	useEffect(() => {
+		const tecla = (e: KeyboardEvent) => {
+			if (e.key === "Escape") fechar();
+			else if (e.key === "ArrowRight") ir(1);
+			else if (e.key === "ArrowLeft") ir(-1);
+		};
+		addEventListener("keydown", tecla);
+		document.body.style.overflow = "hidden";
+		return () => {
+			removeEventListener("keydown", tecla);
+			document.body.style.overflow = "";
+		};
+	});
+	const legenda = foto.legenda ?? aberta.titulo;
+	return (
+		<div className='visor' role='dialog' aria-modal='true' aria-label={legenda} onClick={fechar}>
+			<button type='button' className='fechar' aria-label='Fechar' autoFocus onClick={fechar}>
+				×
+			</button>
+			<div className='palco'>
+				<img src={`/espetaculo/fotos/grandes/${foto.src}`} alt={legenda} onClick={(e) => e.stopPropagation()} />
+			</div>
+			<div className='rodape' onClick={(e) => e.stopPropagation()}>
+				{total > 1 && (
+					<button type='button' aria-label='Foto anterior' onClick={() => ir(-1)}>
+						‹
+					</button>
+				)}
+				<p>{legenda}</p>
+				{total > 1 && (
+					<button type='button' aria-label='Próxima foto' onClick={() => ir(1)}>
+						›
+					</button>
+				)}
+			</div>
+		</div>
+	);
+}
+
 export default function ProgramaBallet() {
+	const [aberta, setAberta] = useState<FotosAbertas | null>(null);
 	const [busca, setBusca] = useState("");
 	const lista = useRef<HTMLDivElement>(null);
 
@@ -216,9 +266,11 @@ export default function ProgramaBallet() {
 										{item.sinopse && <p className='sinopse'>{item.sinopse}</p>}
 										{item.fotos && (
 											<div className={`fotos${item.fotos.length > 1 ? " varias" : ""}`}>
-												{item.fotos.map((f) => (
+												{item.fotos.map((f, k) => (
 													<figure key={f.src}>
-														<img src={`/espetaculo/fotos/${f.src}`} alt={f.legenda ?? item.titulo} width={900} height={1200} loading='lazy' decoding='async' />
+														<button type='button' aria-label={`Ampliar foto: ${f.legenda ?? item.titulo}`} onClick={() => setAberta({ fotos: item.fotos!, indice: k, titulo: item.titulo })}>
+															<img src={`/espetaculo/fotos/${f.src}`} alt={f.legenda ?? item.titulo} width={900} height={1200} loading='lazy' decoding='async' />
+														</button>
 														{f.legenda && <figcaption>{f.legenda}</figcaption>}
 													</figure>
 												))}
@@ -311,6 +363,8 @@ export default function ProgramaBallet() {
 					</p>
 				</div>
 			</main>
+
+			{aberta && <VisorDeFotos aberta={aberta} fechar={() => setAberta(null)} />}
 
 			<footer>
 				<img src='/espetaculo/simbolo.svg' alt='' />
