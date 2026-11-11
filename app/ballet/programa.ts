@@ -44,7 +44,6 @@ export type ItemPrograma = Cena | Lugar | { ato: string } | { intervalo: string 
 
 export const PROGRAMA: ItemPrograma[] = [
 	{ lugar: "Kansas", imagem: "kansas" },
-	{ titulo: "Narração e abertura das cortinas", faixas: ["01"], nomes: [] },
 	{ titulo: "Tia Anne e Tio Henry", sinopse: "Na fazenda, Dorothy vive com a Tia Anne e o Tio Henry, entre o trabalho no campo e os dias sempre iguais.", faixas: ["02"], fotos: [{ src: "c02a.jpg", legenda: "Tia Anne e Tio Henry" }, { src: "c02b.jpg", legenda: "Tio Henry" }], nomes: [{ nome: "Warley Castro", papel: "Tio Henry" }, { nome: "Flavia Guimaraes", papel: "Tia Anne" }] },
 	{ titulo: "Solo Dorothy", sinopse: "Dorothy sonha com um lugar além do arco-íris, onde tudo seja colorido e cheio de aventura.", faixas: ["03"], fotos: [{ src: "dorothy1630.jpg", legenda: "Dorothy · sessão das 16h30" }, { src: "dorothy19.jpg", legenda: "Dorothy · sessão das 19h" }], nomes: [{ nome: "Camila Silva Carneiro", papel: "Dorothy", sessao: "19h" }, { nome: "Maria Fernanda Bastos", papel: "Dorothy", sessao: "16h30" }] },
 	{ lugar: "O tornado", imagem: "tornado" },

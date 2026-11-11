@@ -36,9 +36,9 @@ describe("cenasDoLugar", () => {
 		expect(cenasDoLugar(itens, 3)).toBe(1);
 	});
 
-	it("os lugares cobrem as 30 cenas do programa", () => {
+	it("os lugares cobrem as 29 cenas do programa", () => {
 		const soma = PROGRAMA.reduce((total, item, i) => total + ("lugar" in item ? cenasDoLugar(PROGRAMA, i) : 0), 0);
 		expect(soma).toBe(PROGRAMA.filter(ehCena).length);
-		expect(soma).toBe(30);
+		expect(soma).toBe(29);
 	});
 });
