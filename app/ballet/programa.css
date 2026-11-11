@@ -90,6 +90,15 @@
 .prog .cena .meta { color: var(--muted); font-size: 14px; margin-bottom: 10px; }
 .prog .cena .meta b { color: var(--emerald); font-weight: 500; }
 .prog .cena .conferir { margin-top: 10px; font-size: 13px; color: #ffb4bf; }
+/* Fotos do ensaio; com mais de uma, rolam de lado */
+/* sem isto a faixa de fotos alarga a coluna do cartão e a página passa da tela */
+.prog .cena > div { min-width: 0; }
+.prog .fotos { display: flex; gap: 8px; margin: 12px 0 14px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.prog .fotos::-webkit-scrollbar { display: none; }
+.prog .fotos figure { position: relative; flex: none; width: min(100%, 300px); margin: 0; scroll-snap-align: start; }
+.prog .fotos.varias figure { width: min(72%, 240px); }
+.prog .fotos img { width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); }
+.prog .fotos figcaption { position: absolute; left: 8px; bottom: 8px; right: 8px; width: fit-content; padding: 5px 10px; border-radius: 999px; background: rgba(6, 11, 9, 0.82); color: var(--text); font-size: 12px; font-weight: 600; }
 .prog .nomes { display: flex; flex-wrap: wrap; gap: 6px; }
 .prog .nomes span { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: #d9d4c4; }
 .prog .nomes span.achou { background: var(--gold); color: var(--bg); font-weight: 600; }

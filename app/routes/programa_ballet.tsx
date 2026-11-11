@@ -212,6 +212,16 @@ export default function ProgramaBallet() {
 									<div>
 										<h3>{item.titulo}</h3>
 										{item.sinopse && <p className='sinopse'>{item.sinopse}</p>}
+										{item.fotos && (
+											<div className={`fotos${item.fotos.length > 1 ? " varias" : ""}`}>
+												{item.fotos.map((f) => (
+													<figure key={f.src}>
+														<img src={`/espetaculo/fotos/${f.src}`} alt={f.legenda ?? item.titulo} width={900} height={1200} loading='lazy' decoding='async' />
+														{f.legenda && <figcaption>{f.legenda}</figcaption>}
+													</figure>
+												))}
+											</div>
+										)}
 										{!item.apenasTitulo && (
 											<>
 												{(item.turma || item.estilo) && (
