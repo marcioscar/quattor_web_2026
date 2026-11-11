@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { ESPETACULO } from "../ballet/espetaculo";
-import { cenasDaBailarina, cenasDoLugar, EQUIPE, ELENCO, ehCena, normalizarNome, PROGRAMA, RASCUNHO, type Pessoa } from "../ballet/programa";
+import { cenasDaBailarina, EQUIPE, ELENCO, ehCena, normalizarNome, PROGRAMA, RASCUNHO, type Pessoa } from "../ballet/programa";
 import estilos from "../ballet/programa.css?url";
 import type { Route } from "./+types/programa_ballet";
 
@@ -59,6 +59,9 @@ function NomesDaCena({ nomes, termo, casou }: { nomes: Pessoa[]; termo: string; 
 	);
 }
 
+/** Cada lugar da história é uma parada na estrada de tijolos amarelos. */
+const TOTAL_PARADAS = PROGRAMA.filter((item) => "lugar" in item).length;
+
 export default function ProgramaBallet() {
 	const [busca, setBusca] = useState("");
 	const lista = useRef<HTMLDivElement>(null);
@@ -72,7 +75,7 @@ export default function ProgramaBallet() {
 		lista.current?.querySelector(".cena.match")?.scrollIntoView({ behavior: "smooth", block: "center" });
 	}
 
-	let numero = 0;
+	let parada = 0;
 
 	return (
 		<div className='prog'>
@@ -187,28 +190,27 @@ export default function ProgramaBallet() {
 								: "Nenhuma cena encontrada com esse nome")}
 					</div>
 
-					<div ref={lista} className={filtrando ? "filtrando" : ""}>
+					<div ref={lista} className={`estrada${filtrando ? " filtrando" : ""}`}>
 						{PROGRAMA.map((item, i) => {
 							if ("ato" in item) return <div key={i} className='ato'>{item.ato}</div>;
 							if ("intervalo" in item) return <div key={i} className='intervalo'>{item.intervalo}</div>;
 							if ("lugar" in item) {
-								const de = numero + 1;
-								const ate = numero + cenasDoLugar(PROGRAMA, i);
+								parada++;
 								return (
 									<div key={i} className='lugar'>
 										<img src={`/espetaculo/oz/${item.imagem}.webp`} alt='' width={800} height={800} loading='lazy' decoding='async' />
 										<div className='lugar-nome'>
-											<small>{de === ate ? `Cena ${de}` : `Cenas ${de} a ${ate}`}</small>
+											<small>
+												Parada {parada} de {TOTAL_PARADAS}
+											</small>
 											<h3>{item.lugar}</h3>
 										</div>
 									</div>
 								);
 							}
-							numero++;
 							const casou = achadas.has(item);
 							return (
 								<article key={i} className={`cena${casou ? " match" : ""}`}>
-									<div className='n'>{numero}</div>
 									<div>
 										<h3>{item.titulo}</h3>
 										{item.sinopse && <p className='sinopse'>{item.sinopse}</p>}
