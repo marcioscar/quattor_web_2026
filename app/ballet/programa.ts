@@ -52,9 +52,9 @@ export const PROGRAMA: ItemPrograma[] = [
 	{ lugar: "A terra de Oz", imagem: "oz" },
 	{ titulo: "Elfas", sinopse: "As elfas, pequenas moradoras de Oz, aparecem curiosas para conhecer a visitante.", faixas: ["06"], fotos: [{ src: "c06.jpg" }], nomes: [{ nome: "Lis Sales de Calçado" }, { nome: "Isis Sales de Calçado" }] },
 	{ titulo: "Papoulas", sinopse: "Campos de papoulas florescem e enchem a terra de Oz de cor.", faixas: ["07"], nomes: [{ nome: "Giovanna Rodrigues da Mota" }, { nome: "Ana Luiza A. Farias" }] },
-	{ titulo: "Camponesa", sinopse: "Uma camponesa de Oz recebe Dorothy com a alegria do lugar.", faixas: ["08"], nomes: [{ nome: "Larissa Stefane" }, { nome: "Débora Ester" }, { nome: "Karine Mayara" }, { nome: "Jéssica Cristina" }] },
+	{ titulo: "Camponesa", sinopse: "Uma camponesa de Oz recebe Dorothy com a alegria do lugar.", faixas: ["08"], nomes: [{ nome: "Larissa Stefane" }, { nome: "Débora Ester" }, { nome: "Karine Mayara" }, { nome: "Jéssica Cristina" }, { nome: "Mariana Lustosa" }] },
 	{ lugar: "As bruxas", imagem: "bruxas" },
-	{ titulo: "Amigas e amigo da Bruxa Boa", sinopse: "Os amigos da Bruxa Boa anunciam que ela está chegando.", faixas: ["09"], fotos: [{ src: "c09.jpg" }], nomes: [{ nome: "Vanessa Vitória" }, { nome: "Paulo Arthur" }, { nome: "Míriam Carneiro" }] },
+	{ titulo: "Amigas e amigo da Bruxa Boa", sinopse: "Os amigos da Bruxa Boa anunciam que ela está chegando.", faixas: ["09"], fotos: [{ src: "c09.jpg" }], nomes: [{ nome: "Vanessa Vitória" }, { nome: "Paulo Arthur" }, { nome: "Míriam Carneiro" }, { nome: "Dayanne Teixeira" }, { nome: "Valdelice Silva" }] },
 	{ titulo: "Bruxa Boa", sinopse: "A Bruxa Boa surge, luminosa, para dar as boas-vindas a Dorothy.", faixas: ["10"], fotos: [{ src: "c10a.jpg", legenda: "Bruxa Boa · sessão das 16h30" }, { src: "c10b.jpg", legenda: "Bruxa Boa · sessão das 19h" }], nomes: [{ nome: "Maria Eduarda Takao", papel: "Bruxa Boa", sessao: "16h30" }, { nome: "Alice de Oliveira", papel: "Bruxa Boa", sessao: "19h" }] },
 	{ titulo: "Bruxa Boa, Bruxa Má e os Sapatinhos Vermelhos", sinopse: "A Bruxa Má quer os sapatinhos vermelhos, mas a Bruxa Boa os entrega a Dorothy, que agora precisa protegê-los.", faixas: ["11"], fotos: [{ src: "c11a.jpg", legenda: "Bruxas · sessão das 16h30" }, { src: "c11b.jpg", legenda: "Bruxa Má · sessão das 16h30" }, { src: "c11c.jpg", legenda: "Bruxas · sessão das 19h" }, { src: "c11d.jpg", legenda: "Bruxa Má · sessão das 19h" }], nomes: [], semNomes: true },
 	{ lugar: "O milharal", imagem: "milharal" },
@@ -111,7 +111,7 @@ export const ELENCO: Array<[personagem: string, bailarinas: Pessoa[], cor: strin
 /** Função, nome (vazio = a definir). */
 export const EQUIPE: Array<[funcao: string, nome: string]> = [
 	["Direção artística", "Warley Castro"],
-	["Coreógrafos e professores", "Marcelo, Mylla, Delfina e Maria Nauane"],
+	["Coreógrafos e professores", "Marcelo Nazaré, Mylla Kathaleen, Delfina Olivari e Maria Nauane Lima"],
 	["Realização", "Quattor Academia"],
 ];
 
