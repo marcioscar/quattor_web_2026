@@ -21,6 +21,19 @@ export async function loader() {
 }
 
 const WHATSAPP = "https://wa.me/5561993190568";
+
+/**
+ * O botão de aula experimental cai no WhatsApp da recepção já com o pedido
+ * escrito: a pessoa só completa modalidade e horário e envia, e a recepção
+ * recebe o que precisa para marcar sem mais uma rodada de perguntas.
+ */
+const MENSAGEM_EXPERIMENTAL = [
+	"Olá! Vim pelo site e quero agendar uma aula experimental na Quattor.",
+	"",
+	"Modalidade: ",
+	"Melhor dia e horário: ",
+].join("\n");
+const WHATSAPP_EXPERIMENTAL = `${WHATSAPP}?text=${encodeURIComponent(MENSAGEM_EXPERIMENTAL)}`;
 const TELEFONE = "(61) 99319-0568";
 
 /**
@@ -186,7 +199,7 @@ export default function Home() {
 								</h1>
 								<div className='mt-5 flex flex-wrap gap-3'>
 									<a
-										href={WHATSAPP}
+										href={WHATSAPP_EXPERIMENTAL}
 										target='_blank'
 										rel='noreferrer'
 										className='inline-flex items-center gap-2 rounded-xl bg-quattor-laranja px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:brightness-105'>
