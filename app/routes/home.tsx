@@ -4,6 +4,8 @@ import { ArrowRight, CalendarDays, Clock, LogIn, Mail, MapPin, Search, UserPlus,
 import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import MainNavbar from "../components/MainNavbar";
 import BannerBallet from "../components/BannerBallet";
+import BannerBlackNovember from "../components/BannerBlackNovember";
+import { blackNovemberNoAr } from "../promocoes/blackNovember";
 import { espetaculoEmDivulgacao } from "../ballet/espetaculo";
 import type { Route } from "./+types/home";
 import { aulasDoDia, hojeBrasilia, type Aula } from "../aulas/agenda.server";
@@ -168,7 +170,7 @@ export default function Home() {
 			<MainNavbar />
 			<main className='bg-quattor-fundo'>
 				<div className='mx-auto max-w-6xl space-y-10 px-4 py-6 sm:py-10'>
-					{espetaculoEmDivulgacao() && <BannerBallet />}
+					{espetaculoEmDivulgacao() ? <BannerBallet /> : blackNovemberNoAr() && <BannerBlackNovember />}
 
 					{/* Bento: destaque + horário + contato */}
 					<section className='grid gap-4 lg:grid-cols-3'>
