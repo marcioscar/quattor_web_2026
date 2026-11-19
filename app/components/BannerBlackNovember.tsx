@@ -2,11 +2,11 @@ import { ArrowRight } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { AVISO, formatarPreco, linkWhatsapp, OFERTAS } from "../promocoes/blackNovember";
 
-/** Black November no topo da página inicial: preços em texto, a capa ao lado e as artes de cada plano. */
+/** Black November no topo da página inicial: título, preços em texto e as artes de cada plano. */
 export default function BannerBlackNovember() {
 	return (
 		<section aria-labelledby='black-november' className='overflow-hidden rounded-3xl bg-[#0d0d0f] text-white shadow-lg'>
-			<div className='grid items-center gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_minmax(0,340px)] lg:gap-10 lg:p-10'>
+			<div className='grid gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-center lg:gap-12 lg:p-10'>
 				<div>
 					<p className='inline-flex rounded-md bg-quattor-vermelho px-3 py-1 text-xs font-bold uppercase tracking-wider'>
 						Até 30 de novembro
@@ -17,8 +17,10 @@ export default function BannerBlackNovember() {
 						<span className='text-quattor-vermelho'>November</span>
 					</h2>
 					<p className='mt-4 text-sm font-bold uppercase tracking-wider text-white/80'>O mês inteiro com preço de Black</p>
+				</div>
 
-					<ul className='mt-5 divide-y divide-white/10'>
+				<div>
+					<ul className='divide-y divide-white/10'>
 						{OFERTAS.map((o) => (
 							<li key={o.plano}>
 								<a
@@ -51,14 +53,6 @@ export default function BannerBlackNovember() {
 						Garantir meu plano pelo WhatsApp
 					</a>
 				</div>
-
-				<img
-					src='/black-november/capa.webp'
-					alt='Black November Quattor: todas as ofertas'
-					width={1080}
-					height={1350}
-					className='hidden w-full rounded-2xl lg:block'
-				/>
 			</div>
 
 			<div className='border-t border-white/10 px-6 pb-6 pt-5 sm:px-8 lg:px-10 lg:pb-10'>
